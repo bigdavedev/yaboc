@@ -13,7 +13,16 @@
 //
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
-#include "SDL3/SDL.h"
+#include "SDL3/SDL_init.h"
+#include "SDL3/SDL_events.h"
+#include "SDL3/SDL_render.h"
+#include "SDL3/SDL_video.h"
+
+namespace
+{
+constexpr int window_default_width{800};
+constexpr int window_default_height{600};
+} // namespace
 
 auto main(int argc, char* argv[]) -> int
 {
@@ -22,6 +31,43 @@ auto main(int argc, char* argv[]) -> int
 
 	// NOLINTNEXTLINE(*-signed-bitwise)
 	SDL_Init(SDL_INIT_EVERYTHING);
+
+	SDL_Window* window = SDL_CreateWindow("Yet Another Breakout Clone",
+	                                      window_default_width,
+	                                      window_default_height,
+	                                      SDL_WindowFlags{});
+
+	SDL_Renderer* renderer = SDL_CreateRenderer(window,
+	                                            nullptr,
+	                                            SDL_RENDERER_ACCELERATED |
+	                                                SDL_RENDERER_PRESENTVSYNC);
+
+	bool running{true};
+	while (running)
+	{
+		SDL_Event sdl_event{};
+		while (SDL_PollEvent(&sdl_event) != 0)
+		{
+			switch (sdl_event.type)
+			{
+			case SDL_EVENT_QUIT: running = false; break;
+			case SDL_EVENT_KEY_DOWN:
+			{
+				if (sdl_event.key.keysym.sym == SDLK_ESCAPE)
+				{
+					running = false;
+				}
+				break;
+			}
+			}
+		}
+
+		SDL_RenderClear(renderer);
+		SDL_RenderPresent(renderer);
+	}
+
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(window);
 
 	SDL_Quit();
 
