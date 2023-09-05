@@ -1,0 +1,126 @@
+{
+	"version": 6,
+	"cmakeMinimumRequired": {
+		"major": 3,
+		"minor": 26
+	},
+	"include": [
+		"tools/cmake/presets/base.json",
+		"tools/cmake/presets/platforms.json",
+		"tools/cmake/presets/generators.json",
+		"tools/cmake/presets/compilers.json",
+		"tools/cmake/presets/build_types.json"
+	],
+	"configurePresets": [
+		{
+			"name": "windows-vs2022-cl-ninja-debug",
+			"displayName": "Windows VisualStudio 2022 - Debug",
+			"binaryDir": "build/${presetName}",
+			"inherits": [
+				"base",
+				"windows",
+				"vs2022",
+				"ninja",
+				"debug"
+			]
+		},
+		{
+			"name": "windows-vs2022-cl-ninja-release",
+			"displayName": "Windows VisualStudio 2022 - Release",
+			"binaryDir": "build/${presetName}",
+			"inherits": [
+				"base",
+				"windows",
+				"vs2022",
+				"ninja",
+				"release"
+			]
+		},
+		{
+			"name": "windows-vs2022-clang-ninja-debug",
+			"displayName": "Windows VisualStudio 2022 Clang - Debug",
+			"binaryDir": "build/${presetName}",
+			"inherits": [
+				"base",
+				"windows",
+				"vs2022-clang",
+				"ninja",
+				"debug"
+			]
+		},
+		{
+			"name": "windows-vs2022-clang-ninja-release",
+			"displayName": "Windows VisualStudio 2022 Clang - Release",
+			"binaryDir": "build/${presetName}",
+			"inherits": [
+				"base",
+				"windows",
+				"vs2022-clang",
+				"ninja",
+				"release"
+			]
+		},
+		{
+			"name": "linux-clang-ninja-debug",
+			"displayName": "Linux Clang - Debug",
+			"binaryDir": "build/${presetName}",
+			"inherits": [
+				"base",
+				"linux",
+				"clang",
+				"ninja",
+				"debug"
+			]
+		},
+		{
+			"name": "linux-clang-ninja-release",
+			"displayName": "Linux Clang - Release",
+			"binaryDir": "build/${presetName}",
+			"inherits": [
+				"base",
+				"linux",
+				"clang",
+				"ninja",
+				"release"
+			]
+		}
+	],
+	"buildPresets": [
+		{
+			"name": "windows-vs2022-cl-ninja-debug",
+			"displayName": "Windows VisualStudio 2022 - Debug",
+			"configurePreset": "windows-vs2022-cl-ninja-debug",
+			"targets": "yaboc"
+		},
+		{
+			"name": "windows-vs2022-cl-ninja-release",
+			"displayName": "Windows VisualStudio 2022 - Release",
+			"configurePreset": "windows-vs2022-cl-ninja-release",
+			"targets": "yaboc"
+		},
+		{
+			"name": "windows-vs2022-clang-ninja-debug",
+			"displayName": "Windows VisualStudio 2022 Clang - Debug",
+			"configurePreset": "windows-vs2022-clang-ninja-debug",
+			"targets": "yaboc"
+		},
+		{
+			"name": "windows-vs2022-clang-ninja-release",
+			"displayName": "Windows VisualStudio 2022 Clang - Release",
+			"configurePreset": "windows-vs2022-clang-ninja-release",
+			"targets": "yaboc"
+		},
+		{
+			"name": "linux-clang-ninja-debug",
+			"displayName": "Linux Clang - Debug",
+			"configurePreset": "linux-clang-ninja-debug",
+			"targets": "yaboc"
+		},
+		{
+			"name": "linux-clang-ninja-release",
+			"displayName": "Linux Clang - Release",
+			"configurePreset": "linux-clang-ninja-release",
+			"targets": "yaboc"
+		}
+	]
+}

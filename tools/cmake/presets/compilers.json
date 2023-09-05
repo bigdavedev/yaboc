@@ -1,0 +1,68 @@
+{
+	"version": 6,
+	"configurePresets": [
+		{
+			"name": "msvc-compiler-flags",
+			"hidden": true,
+			"cacheVariables": {
+				"YABOC_CXX_FLAGS": "/W4;/WX;/EHsc"
+			}
+		},
+		{
+			"name": "clang-compiler-flags",
+			"hidden": true,
+			"cacheVariables": {
+				"YABOC_CXX_FLAGS": "-Weverything;-Wno-c++98-compat-pedantic;-Wno-c++20-compat"
+			}
+		},
+		{
+			"name": "vs2022",
+			"hidden": true,
+			"inherits": [
+				"msvc-compiler-flags"
+			],
+			"cacheVariables": {
+				"CMAKE_C_COMPILER": "cl.exe",
+				"CMAKE_CXX_COMPILER": "cl.exe"
+			},
+			"toolset": {
+				"value": "host=x64",
+				"strategy": "external"
+			},
+			"architecture": {
+				"value": "x64",
+				"strategy": "external"
+			}
+		},
+		{
+			"name": "vs2022-clang",
+			"hidden": true,
+			"inherits": [
+				"clang-compiler-flags"
+			],
+			"cacheVariables": {
+				"CMAKE_C_COMPILER": "clang-cl.exe",
+				"CMAKE_CXX_COMPILER": "clang-cl.exe"
+			},
+			"toolset": {
+				"value": "ClangCL,host=x64",
+				"strategy": "external"
+			},
+			"architecture": {
+				"value": "x64",
+				"strategy": "external"
+			}
+		},
+		{
+			"name": "clang",
+			"hidden": true,
+			"inherits": [
+				"clang-compiler-flags"
+			],
+			"cacheVariables": {
+				"CMAKE_C_COMPILER": "clang",
+				"CMAKE_CXX_COMPILER": "clang"
+			}
+		}
+	]
+}

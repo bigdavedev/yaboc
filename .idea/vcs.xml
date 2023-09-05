@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/Loke/windows-vs2022-cl-ninja-debug/_deps/sdl-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/Loke/windows-vs2022-cl-ninja-release/_deps/sdl-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/Loke/windows-vs2022-clang-ninja-debug/_deps/sdl-src" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/build/Loke/windows-vs2022-clang-ninja-release/_deps/sdl-src" vcs="Git" />
+  </component>
+</project>
