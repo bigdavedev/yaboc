@@ -12,7 +12,7 @@
 			"name": "clang-compiler-flags",
 			"hidden": true,
 			"cacheVariables": {
-				"YABOC_CXX_FLAGS": "-Weverything;-Wno-c++98-compat-pedantic;-Wno-c++20-compat"
+				"YABOC_CXX_FLAGS": "-Weverything;-Wno-c++98-compat-pedantic;-Wno-c++20-compat;-Wno-padded"
 			}
 		},
 		{
@@ -61,7 +61,7 @@
 			],
 			"cacheVariables": {
 				"CMAKE_C_COMPILER": "clang",
-				"CMAKE_CXX_COMPILER": "clang"
+				"CMAKE_CXX_COMPILER": "clang++"
 			}
 		}
 	]

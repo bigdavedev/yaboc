@@ -15,11 +15,31 @@ include (StageConfig)
 include (Dependencies)
 include (CompilerConfig)
 
-add_executable (yaboc main.cpp)
+add_executable (yaboc)
+
+target_include_directories (
+	yaboc
+
+	PRIVATE
+	${Yaboc_SOURCE_DIR}/include
+)
+
+target_sources (
+	yaboc
+
+	PRIVATE
+	include/yaboc/shader.h
+
+	src/shader.cpp
+	src/main.cpp
+)
 
 target_link_libraries (
 	yaboc
 
 	PRIVATE
 	SDL3::SDL3
+	OpenGL::GL
+	glm::glm
+	Glad::Glad
 )
