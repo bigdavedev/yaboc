@@ -11,6 +11,8 @@ list (APPEND CMAKE_MODULE_PATH ${Yaboc_SOURCE_DIR}/tools/cmake)
 
 set (CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+option (YABOC_ENABLE_SANITZERS "" OFF)
+
 include (StageConfig)
 include (Dependencies)
 include (CompilerConfig)
@@ -29,8 +31,10 @@ target_sources (
 
 	PRIVATE
 	include/yaboc/shader.h
+	include/yaboc/sprite_renderer.h
 
 	src/shader.cpp
+	src/sprite_renderer.cpp
 	src/main.cpp
 )
 

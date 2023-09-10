@@ -6,7 +6,12 @@ foreach (OPTION ${YABOC_CXX_FLAGS})
     add_compile_options (${OPTION})
 endforeach ()
 
-set (CMAKE_CXX_STANDARD 20)
+if (YABOC_ENABLE_SANITZERS)
+    add_compile_options ($<$<CXX_COMPILER_ID:Clang>:-fsanitize=address,undefined>)
+    add_link_options ($<$<CXX_COMPILER_ID:Clang>:-fsanitize=address,undefined>)
+endif ()
+
+set (CMAKE_CXX_STANDARD 23)
 set (CMAKE_CXX_STANDARD_REQUIRED YES)
 set (CMAKE_CXX_EXTENSIONS OFF)
 

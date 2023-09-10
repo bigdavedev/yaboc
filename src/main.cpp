@@ -14,16 +14,17 @@
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 #include "yaboc/shader.h"
+#include "yaboc/sprite_renderer.h"
 
 #include "glad/gl.h"
-#include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_init.h"
 #include "SDL3/SDL_video.h"
 
-#include <array>
+#include <chrono>
+#include <format>
 #include <iostream>
 
 namespace
@@ -38,75 +39,14 @@ void message_callback(GLenum        source,
                       GLsizei       length,
                       GLchar const* message,
                       void const*   user_param);
+
+using namespace std::chrono_literals;
+
+constexpr auto dt = std::chrono::duration<long long, std::ratio<1, 60>>{1};
+using duration = decltype(std::chrono::steady_clock::duration{} + dt);
+using time_point = std::chrono::time_point<std::chrono::steady_clock, duration>;
+
 } // namespace
-
-namespace yaboc
-{
-class sprite_renderer final
-{
-	unsigned int m_shader{};
-
-	unsigned int m_vao{};
-	unsigned int m_vbo{};
-	unsigned int m_ebo{};
-
-public:
-	~sprite_renderer()
-	{
-		glDeleteProgram(m_shader);
-		glDeleteBuffers(1, &m_vbo);
-		glDeleteBuffers(1, &m_ebo);
-		glDeleteVertexArrays(1, &m_vao);
-	}
-
-	explicit sprite_renderer(unsigned int shader_id)
-	    : m_shader{shader_id}
-	{
-		auto const verts =
-		    std::array{-0.5F, -0.5F, 0.5F, -0.5F, 0.5F, 0.5F, -0.5F, 0.5F};
-		glCreateBuffers(1, &m_vbo);
-		glNamedBufferStorage(m_vbo,
-		                     std::size(verts) * sizeof(float),
-		                     std::data(verts),
-		                     GL_DYNAMIC_STORAGE_BIT);
-
-		auto const indices = std::array{0U, 1U, 2U, 2U, 3U, 0U};
-		glCreateBuffers(1, &m_ebo);
-		glNamedBufferStorage(m_ebo,
-		                     std::size(indices) * sizeof(unsigned int),
-		                     std::data(indices),
-		                     GL_DYNAMIC_STORAGE_BIT);
-
-		glCreateVertexArrays(1, &m_vao);
-		glVertexArrayVertexBuffer(m_vao, 0, m_vbo, 0, 2 * sizeof(float));
-		glVertexArrayElementBuffer(m_vao, m_ebo);
-
-		glEnableVertexArrayAttrib(m_vao, 0);
-		glVertexArrayAttribFormat(m_vao, 0, 2, GL_FLOAT, GL_FALSE, 0);
-		glVertexArrayAttribBinding(m_vao, 0, 0);
-	}
-
-	sprite_renderer(sprite_renderer const&) = delete;
-	sprite_renderer(sprite_renderer&&) = default;
-
-	auto operator=(sprite_renderer const&) -> sprite_renderer& = delete;
-	auto operator=(sprite_renderer&&) -> sprite_renderer& = default;
-
-	auto submit_sprite(glm::vec2 const position, glm::vec2 const size) const
-	    -> void
-	{
-		auto model =
-		    glm::translate(glm::mat4{1.0F}, glm::vec3{position, 1.0F});
-		model = glm::scale(model, glm::vec3{size, 1.0F});
-
-		glUseProgram(m_shader);
-		auto const model_loc = glGetUniformLocation(m_shader, "model");
-		glUniformMatrix4fv(model_loc, 1, GL_FALSE, glm::value_ptr(model));
-		glBindVertexArray(m_vao);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-	}
-};
-} // namespace yaboc
 
 auto main(int argc, char* argv[]) -> int
 {
@@ -131,6 +71,7 @@ auto main(int argc, char* argv[]) -> int
 
 	SDL_GLContext gl_context = SDL_GL_CreateContext(window);
 	SDL_GL_MakeCurrent(window, gl_context);
+	SDL_GL_SetSwapInterval(0);
 
 	gladLoadGL(SDL_GL_GetProcAddress);
 
@@ -152,7 +93,7 @@ auto main(int argc, char* argv[]) -> int
 	         .path = "assets/shaders/sprite.frag.glsl"}
     });
 
-	int window_drawable_width  = 0;
+	int window_drawable_width = 0;
 	int window_drawable_height = 0;
 	SDL_GetWindowSizeInPixels(window,
 	                          &window_drawable_width,
@@ -174,8 +115,21 @@ auto main(int argc, char* argv[]) -> int
 	auto renderer = yaboc::sprite_renderer{sprite_shader};
 
 	bool running{true};
+
+	time_point current_time = std::chrono::steady_clock::now();
+
 	while (running)
 	{
+		time_point new_time = std::chrono::steady_clock::now();
+		auto const frame_time = new_time - current_time;
+		current_time = new_time;
+
+		auto const seconds =
+		    std::chrono::duration_cast<std::chrono::duration<float>>(
+		        frame_time);
+		auto const title = std::format("Frame time: {:1.5f}", seconds.count());
+		SDL_SetWindowTitle(window, title.c_str());
+
 		SDL_Event sdl_event{};
 		while (SDL_PollEvent(&sdl_event) != 0)
 		{
@@ -196,7 +150,11 @@ auto main(int argc, char* argv[]) -> int
 		glm::vec4 clear_colour{};
 		glClearBufferfv(GL_COLOR, 0, glm::value_ptr(clear_colour));
 
-		renderer.submit_sprite(glm::vec2{400, 100}, glm::vec2{100, 10});
+		renderer.begin_batch();
+
+		renderer.submit_sprite(glm::vec2{400-64, 550}, glm::vec2{128, 32});
+
+		renderer.end_batch();
 
 		SDL_GL_SwapWindow(window);
 	}
