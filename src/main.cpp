@@ -16,6 +16,7 @@
 #include "yaboc/shader.h"
 #include "yaboc/sprite_renderer.h"
 
+#include "entt/entt.hpp"
 #include "glad/gl.h"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
@@ -26,6 +27,7 @@
 #include <chrono>
 #include <format>
 #include <iostream>
+#include <memory>
 
 namespace
 {
@@ -47,6 +49,47 @@ using duration = decltype(std::chrono::steady_clock::duration{} + dt);
 using time_point = std::chrono::time_point<std::chrono::steady_clock, duration>;
 
 } // namespace
+
+namespace yaboc::ecs
+{
+namespace components
+{
+	struct transform final
+	{
+		glm::vec2 position;
+	};
+
+	struct sprite final
+	{
+		glm::vec2 size;
+	};
+} // namespace components
+
+class sprite_render_system final
+{
+	std::unique_ptr<sprite_renderer> m_renderer{};
+
+public:
+	explicit sprite_render_system(GLuint shader_id)
+	    : m_renderer{std::make_unique<sprite_renderer>(shader_id)}
+	{}
+
+	void operator()(entt::registry& registry) const
+	{
+		m_renderer->begin_batch();
+
+		for (auto entity: registry.view<components::sprite>())
+		{
+			auto const& transform = registry.get<components::transform>(entity);
+			auto const& sprite = registry.get<components::sprite>(entity);
+
+			m_renderer->submit_sprite(transform.position, sprite.size);
+		}
+
+		m_renderer->end_batch();
+	}
+};
+} // namespace yaboc::ecs
 
 auto main(int argc, char* argv[]) -> int
 {
@@ -112,11 +155,20 @@ auto main(int argc, char* argv[]) -> int
 	auto const proj_loc = glGetUniformLocation(sprite_shader, "projection");
 	glUniformMatrix4fv(proj_loc, 1, GL_FALSE, glm::value_ptr(projection));
 
-	auto renderer = yaboc::sprite_renderer{sprite_shader};
+	auto render_system = yaboc::ecs::sprite_render_system{sprite_shader};
 
 	bool running{true};
 
 	time_point current_time = std::chrono::steady_clock::now();
+
+	entt::registry registry{};
+
+	auto paddle = registry.create();
+	registry.emplace<yaboc::ecs::components::transform>(
+	    paddle,
+	    glm::vec2{400 - 64, 550});
+	registry.emplace<yaboc::ecs::components::sprite>(paddle,
+	                                                 glm::vec2{128, 32});
 
 	while (running)
 	{
@@ -127,7 +179,9 @@ auto main(int argc, char* argv[]) -> int
 		auto const seconds =
 		    std::chrono::duration_cast<std::chrono::duration<float>>(
 		        frame_time);
-		auto const title = std::format("Frame time: {:1.5f}", seconds.count());
+		auto const title =
+		    std::format("Yet Another Breakout Clone. Frame time: {:1.5f}",
+		                seconds.count());
 		SDL_SetWindowTitle(window, title.c_str());
 
 		SDL_Event sdl_event{};
@@ -150,11 +204,7 @@ auto main(int argc, char* argv[]) -> int
 		glm::vec4 clear_colour{};
 		glClearBufferfv(GL_COLOR, 0, glm::value_ptr(clear_colour));
 
-		renderer.begin_batch();
-
-		renderer.submit_sprite(glm::vec2{400-64, 550}, glm::vec2{128, 32});
-
-		renderer.end_batch();
+		render_system(registry);
 
 		SDL_GL_SwapWindow(window);
 	}

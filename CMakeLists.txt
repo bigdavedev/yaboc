@@ -46,4 +46,5 @@ target_link_libraries (
 	OpenGL::GL
 	glm::glm
 	Glad::Glad
+	EnTT::EnTT
 )

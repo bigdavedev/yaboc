@@ -12,7 +12,7 @@ out vec2 texture_coord;
 
 void main()
 {
-    gl_Position = projection * model * vec4(vertex, 0, 1);
+    gl_Position = projection * vec4(vertex, 0, 1);
     tint = colour;
 	texture_coord = uv;
 }
