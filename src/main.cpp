@@ -91,13 +91,36 @@ public:
 };
 } // namespace yaboc::ecs
 
+struct sdl_context final
+{
+	sdl_context()
+	{
+		// NOLINTNEXTLINE(*-signed-bitwise)
+		SDL_Init(SDL_INIT_EVERYTHING);
+	}
+
+	sdl_context(sdl_context const&) = delete;
+	sdl_context(sdl_context&&) = delete;
+	auto operator=(sdl_context const&) -> sdl_context& = delete;
+	auto operator=(sdl_context&&) -> sdl_context& = delete;
+
+	~sdl_context()
+	{
+		SDL_GL_DeleteContext(m_gl_context);
+		SDL_DestroyWindow(m_window);
+		SDL_Quit();
+	}
+
+	SDL_Window*   m_window{};
+	SDL_GLContext m_gl_context{};
+};
+
 auto main(int argc, char* argv[]) -> int
 {
 	static_cast<void>(argc);
 	static_cast<void>(argv);
 
-	// NOLINTNEXTLINE(*-signed-bitwise)
-	SDL_Init(SDL_INIT_EVERYTHING);
+	sdl_context sdl{};
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
 	                    SDL_GL_CONTEXT_PROFILE_CORE);
@@ -114,7 +137,10 @@ auto main(int argc, char* argv[]) -> int
 
 	SDL_GLContext gl_context = SDL_GL_CreateContext(window);
 	SDL_GL_MakeCurrent(window, gl_context);
-	SDL_GL_SetSwapInterval(0);
+	SDL_GL_SetSwapInterval(1);
+
+	sdl.m_window = window;
+	sdl.m_gl_context = gl_context;
 
 	gladLoadGL(SDL_GL_GetProcAddress);
 
@@ -208,11 +234,6 @@ auto main(int argc, char* argv[]) -> int
 
 		SDL_GL_SwapWindow(window);
 	}
-
-	SDL_GL_DeleteContext(gl_context);
-	SDL_DestroyWindow(window);
-
-	SDL_Quit();
 
 	return 0;
 }
