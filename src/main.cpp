@@ -26,8 +26,10 @@
 
 #include <chrono>
 #include <format>
+#include <fstream>
 #include <iostream>
 #include <memory>
+#include <string>
 
 namespace
 {
@@ -50,8 +52,21 @@ using time_point = std::chrono::time_point<std::chrono::steady_clock, duration>;
 
 } // namespace
 
+namespace yaboc
+{
+void load_level(entt::registry& registry, std::string const& level_file);
+} // namespace yaboc
+
 namespace yaboc::ecs
 {
+namespace tags
+{
+	struct player final
+	{};
+	struct brick final
+	{};
+} // namespace tags
+
 namespace components
 {
 	struct transform final
@@ -63,6 +78,17 @@ namespace components
 	{
 		glm::vec2 size;
 	};
+
+	enum class brick_type
+	{
+		unbreakable,
+		normal
+	};
+
+	struct brick_group final
+	{
+		glm::vec2 offset{};
+	};
 } // namespace components
 
 class sprite_render_system final
@@ -71,17 +97,28 @@ class sprite_render_system final
 
 public:
 	explicit sprite_render_system(GLuint shader_id)
-	    : m_renderer{std::make_unique<sprite_renderer>(shader_id)}
+	    : m_renderer{std::make_unique<sprite_renderer>(shader_id, 500)}
 	{}
 
 	void operator()(entt::registry& registry) const
 	{
 		m_renderer->begin_batch();
 
-		for (auto entity: registry.view<components::sprite>())
+		for (auto entity: registry.view<tags::brick>())
 		{
-			auto const& transform = registry.get<components::transform>(entity);
-			auto const& sprite = registry.get<components::sprite>(entity);
+			auto transform = registry.get<components::transform>(entity);
+			auto sprite = registry.get<components::sprite>(entity);
+
+			transform.position +=
+			    registry.ctx().get<components::brick_group>().offset;
+
+			m_renderer->submit_sprite(transform.position, sprite.size);
+		}
+
+		for (auto entity: registry.view<tags::player>())
+		{
+			auto transform = registry.get<components::transform>(entity);
+			auto sprite = registry.get<components::sprite>(entity);
 
 			m_renderer->submit_sprite(transform.position, sprite.size);
 		}
@@ -90,6 +127,62 @@ public:
 	}
 };
 } // namespace yaboc::ecs
+
+namespace yaboc
+{
+void load_level(entt::registry& registry, std::string const& level_file)
+{
+	std::ifstream level_stream{level_file};
+	std::string   line{};
+
+	float     gap = 8.0F;
+	glm::vec2 brick_size{64.0F, 32.0F};
+
+	glm::vec2 start_point{};
+
+	int bricks_per_row{};
+	int y{};
+	while (std::getline(level_stream, line))
+	{
+		unsigned int      brick_type{};
+		std::stringstream line_stream{line};
+
+		int x{};
+		while (line_stream >> brick_type)
+		{
+			if (brick_type != 0)
+			{
+				entt::entity brick = registry.create();
+
+				using transform_component = ecs::components::transform;
+				using sprite_component = ecs::components::sprite;
+
+				registry.emplace<transform_component>(
+				    brick,
+				    glm::vec2{start_point.x + (static_cast<float>(x) * gap) +
+				                  (static_cast<float>(x) * brick_size.x),
+				              start_point.y + static_cast<float>(y) * gap +
+				                  (static_cast<float>(y) * brick_size.y)});
+				registry.emplace<sprite_component>(brick, brick_size);
+
+				registry.emplace<ecs::tags::brick>(brick);
+			}
+
+			++x;
+		}
+		bricks_per_row = std::max(bricks_per_row, x);
+
+		++y;
+	}
+
+	// Ensure the bricks are centered along the X-axis.
+	float brick_row_midpoint{static_cast<float>(bricks_per_row) / 2.0F};
+	registry.ctx().emplace<ecs::components::brick_group>(glm::vec2{
+	    gap / 2.0F + window_default_width / 2 -
+	        (brick_row_midpoint * brick_size.x + brick_row_midpoint * gap),
+	    32.0F});
+}
+} // namespace yaboc
 
 struct sdl_context final
 {
@@ -195,6 +288,9 @@ auto main(int argc, char* argv[]) -> int
 	    glm::vec2{400 - 64, 550});
 	registry.emplace<yaboc::ecs::components::sprite>(paddle,
 	                                                 glm::vec2{128, 32});
+	registry.emplace<yaboc::ecs::tags::player>(paddle);
+
+	yaboc::load_level(registry, "assets/data/levels/level_01.txt");
 
 	while (running)
 	{
