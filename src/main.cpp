@@ -54,8 +54,11 @@ using time_point = std::chrono::time_point<std::chrono::steady_clock, duration>;
 
 namespace yaboc
 {
-auto load_level(entt::registry& registry, std::string const& level_file) -> void;
+auto load_level(entt::registry& registry, std::string const& level_file)
+    -> void;
 auto create_paddle(entt::registry& registry, glm::vec2 position, glm::vec2 size)
+    -> entt::entity;
+auto create_ball(entt::registry& registry, glm::vec2 size, entt::entity parent)
     -> entt::entity;
 } // namespace yaboc
 
@@ -64,6 +67,8 @@ namespace yaboc::ecs
 namespace tags
 {
 	struct player final
+	{};
+	struct ball final
 	{};
 	struct brick final
 	{};
@@ -74,6 +79,11 @@ namespace components
 	struct transform final
 	{
 		glm::vec2 position;
+	};
+
+	struct relationship final
+	{
+		entt::entity parent;
 	};
 
 	struct sprite final
@@ -102,25 +112,36 @@ public:
 	    : m_renderer{std::make_unique<sprite_renderer>(shader_id, 500)}
 	{}
 
+	static auto components(entt::registry& registry, entt::entity entity)
+	{
+		return registry.get<components::transform, components::sprite>(entity);
+	}
+
 	void operator()(entt::registry& registry) const
 	{
 		m_renderer->begin_batch();
 
 		for (auto entity: registry.view<tags::brick>())
 		{
-			auto transform = registry.get<components::transform>(entity);
-			auto sprite = registry.get<components::sprite>(entity);
+			auto [transform, sprite] = components(registry, entity);
 
-			transform.position +=
+			auto position =
+			    transform.position +
 			    registry.ctx().get<components::brick_group>().offset;
 
-			m_renderer->submit_sprite(transform.position, sprite.size);
+			m_renderer->submit_sprite(position, sprite.size);
 		}
 
 		for (auto entity: registry.view<tags::player>())
 		{
-			auto transform = registry.get<components::transform>(entity);
-			auto sprite = registry.get<components::sprite>(entity);
+			auto [transform, sprite] = components(registry, entity);
+
+			m_renderer->submit_sprite(transform.position, sprite.size);
+		}
+
+		for (auto entity: registry.view<tags::ball>())
+		{
+			auto [transform, sprite] = components(registry, entity);
 
 			m_renderer->submit_sprite(transform.position, sprite.size);
 		}
@@ -194,6 +215,28 @@ auto create_paddle(entt::registry& registry, glm::vec2 position, glm::vec2 size)
 	registry.emplace<yaboc::ecs::components::sprite>(paddle, size);
 	registry.emplace<yaboc::ecs::tags::player>(paddle);
 	return paddle;
+}
+
+auto create_ball(entt::registry& registry, glm::vec2 size, entt::entity parent)
+    -> entt::entity
+{
+	auto ball = registry.create();
+
+	auto [parent_transform, parent_sprite] =
+	    registry.get<ecs::components::transform, ecs::components::sprite>(
+	        parent);
+
+	auto position =
+	    glm::vec2{parent_transform.position.x + parent_sprite.size.x / 2.0F -
+	                  size.x / 2.0F,
+	              parent_transform.position.y - parent_sprite.size.y};
+
+	registry.emplace<ecs::components::transform>(ball, position);
+	registry.emplace<ecs::components::sprite>(ball, size);
+	registry.emplace<ecs::tags::ball>(ball);
+	registry.emplace<ecs::components::relationship>(ball, parent);
+
+	return ball;
 }
 } // namespace yaboc
 
@@ -295,7 +338,9 @@ auto main(int argc, char* argv[]) -> int
 
 	entt::registry registry{};
 
-	yaboc::create_paddle(registry, glm::vec2{400, 550}, glm::vec2{128, 32});
+	auto paddle =
+	    yaboc::create_paddle(registry, glm::vec2{400, 550}, glm::vec2{128, 32});
+	yaboc::create_ball(registry, glm::vec2{32, 32}, paddle);
 
 	yaboc::load_level(registry, "assets/data/levels/level_01.txt");
 
