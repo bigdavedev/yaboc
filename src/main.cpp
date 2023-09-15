@@ -54,7 +54,9 @@ using time_point = std::chrono::time_point<std::chrono::steady_clock, duration>;
 
 namespace yaboc
 {
-void load_level(entt::registry& registry, std::string const& level_file);
+auto load_level(entt::registry& registry, std::string const& level_file) -> void;
+auto create_paddle(entt::registry& registry, glm::vec2 position, glm::vec2 size)
+    -> entt::entity;
 } // namespace yaboc
 
 namespace yaboc::ecs
@@ -182,6 +184,17 @@ void load_level(entt::registry& registry, std::string const& level_file)
 	        (brick_row_midpoint * brick_size.x + brick_row_midpoint * gap),
 	    32.0F});
 }
+
+auto create_paddle(entt::registry& registry, glm::vec2 position, glm::vec2 size)
+    -> entt::entity
+{
+	auto paddle = registry.create();
+	auto centered = position - (size / 2.0F);
+	registry.emplace<yaboc::ecs::components::transform>(paddle, centered);
+	registry.emplace<yaboc::ecs::components::sprite>(paddle, size);
+	registry.emplace<yaboc::ecs::tags::player>(paddle);
+	return paddle;
+}
 } // namespace yaboc
 
 struct sdl_context final
@@ -282,13 +295,7 @@ auto main(int argc, char* argv[]) -> int
 
 	entt::registry registry{};
 
-	auto paddle = registry.create();
-	registry.emplace<yaboc::ecs::components::transform>(
-	    paddle,
-	    glm::vec2{400 - 64, 550});
-	registry.emplace<yaboc::ecs::components::sprite>(paddle,
-	                                                 glm::vec2{128, 32});
-	registry.emplace<yaboc::ecs::tags::player>(paddle);
+	yaboc::create_paddle(registry, glm::vec2{400, 550}, glm::vec2{128, 32});
 
 	yaboc::load_level(registry, "assets/data/levels/level_01.txt");
 
