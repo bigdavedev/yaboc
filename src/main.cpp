@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
+#include "yaboc/ecs/components/all.h"
+#include "yaboc/ecs/systems/sprite_render_system.h"
 #include "yaboc/shader.h"
 #include "yaboc/sprite_renderer.h"
 
@@ -60,99 +62,7 @@ auto create_paddle(entt::registry& registry, glm::vec2 position, glm::vec2 size)
     -> entt::entity;
 auto create_ball(entt::registry& registry, glm::vec2 size, entt::entity parent)
     -> entt::entity;
-} // namespace yaboc
 
-namespace yaboc::ecs
-{
-namespace tags
-{
-	struct player final
-	{};
-	struct ball final
-	{};
-	struct brick final
-	{};
-} // namespace tags
-
-namespace components
-{
-	struct transform final
-	{
-		glm::vec2 position;
-	};
-
-	struct relationship final
-	{
-		entt::entity parent;
-	};
-
-	struct sprite final
-	{
-		glm::vec2 size;
-	};
-
-	enum class brick_type
-	{
-		unbreakable,
-		normal
-	};
-
-	struct brick_group final
-	{
-		glm::vec2 offset{};
-	};
-} // namespace components
-
-class sprite_render_system final
-{
-	std::unique_ptr<sprite_renderer> m_renderer{};
-
-public:
-	explicit sprite_render_system(GLuint shader_id)
-	    : m_renderer{std::make_unique<sprite_renderer>(shader_id, 500)}
-	{}
-
-	static auto components(entt::registry& registry, entt::entity entity)
-	{
-		return registry.get<components::transform, components::sprite>(entity);
-	}
-
-	void operator()(entt::registry& registry) const
-	{
-		m_renderer->begin_batch();
-
-		for (auto entity: registry.view<tags::brick>())
-		{
-			auto [transform, sprite] = components(registry, entity);
-
-			auto position =
-			    transform.position +
-			    registry.ctx().get<components::brick_group>().offset;
-
-			m_renderer->submit_sprite(position, sprite.size);
-		}
-
-		for (auto entity: registry.view<tags::player>())
-		{
-			auto [transform, sprite] = components(registry, entity);
-
-			m_renderer->submit_sprite(transform.position, sprite.size);
-		}
-
-		for (auto entity: registry.view<tags::ball>())
-		{
-			auto [transform, sprite] = components(registry, entity);
-
-			m_renderer->submit_sprite(transform.position, sprite.size);
-		}
-
-		m_renderer->end_batch();
-	}
-};
-} // namespace yaboc::ecs
-
-namespace yaboc
-{
 void load_level(entt::registry& registry, std::string const& level_file)
 {
 	std::ifstream level_stream{level_file};
@@ -330,7 +240,8 @@ auto main(int argc, char* argv[]) -> int
 	auto const proj_loc = glGetUniformLocation(sprite_shader, "projection");
 	glUniformMatrix4fv(proj_loc, 1, GL_FALSE, glm::value_ptr(projection));
 
-	auto render_system = yaboc::ecs::sprite_render_system{sprite_shader};
+	auto render_system =
+	    yaboc::ecs::system::sprite_render_system{sprite_shader};
 
 	bool running{true};
 

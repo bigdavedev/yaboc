@@ -33,8 +33,13 @@ target_sources (
 	include/yaboc/shader.h
 	include/yaboc/sprite_renderer.h
 
+	include/yaboc/ecs/components/all.h
+	include/yaboc/ecs/components/tags.h
+	include/yaboc/ecs/systems/sprite_render_system.h
+
 	src/shader.cpp
 	src/sprite_renderer.cpp
+	src/yaboc/ecs/systems/sprite_render_system.cpp
 	src/main.cpp
 )
 
