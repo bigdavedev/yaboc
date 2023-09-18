@@ -22,8 +22,8 @@
 
 namespace yaboc::ecs::system
 {
-sprite_render_system::sprite_render_system(GLuint shader_id)
-    : m_renderer{std::make_unique<sprite_renderer>(shader_id, 500)}
+sprite_render_system::sprite_render_system(std::unique_ptr<sprite_renderer>&& renderer)
+	: m_renderer{std::move(renderer)}
 {}
 
 void sprite_render_system::operator()(entt::registry& registry) const

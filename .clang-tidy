@@ -9,6 +9,7 @@ Checks: >
   -clang-analyzer-optin.osx*,
   -clang-analyzer-osx*,
   -clang-analyzer-webkit*,
+  -cppcoreguidelines-pro-type-union-access,
   -darwin-*,
   -fuchsia-*,
   -linuxkernel-*,

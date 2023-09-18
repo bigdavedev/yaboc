@@ -35,8 +35,11 @@
 
 namespace
 {
-constexpr int window_default_width{800};
-constexpr int window_default_height{600};
+constexpr int window_default_width{1280};
+constexpr int window_default_height{720};
+
+//constexpr int render_area_width{640};
+//constexpr int render_area_height{360};
 
 void message_callback(GLenum        source,
                       GLenum        type,
@@ -68,8 +71,8 @@ void load_level(entt::registry& registry, std::string const& level_file)
 	std::ifstream level_stream{level_file};
 	std::string   line{};
 
-	float     gap = 8.0F;
-	glm::vec2 brick_size{64.0F, 32.0F};
+	float     gap = 0.03125F;
+	glm::vec2 brick_size{0.75F, 0.25F};
 
 	glm::vec2 start_point{};
 
@@ -111,9 +114,9 @@ void load_level(entt::registry& registry, std::string const& level_file)
 	// Ensure the bricks are centered along the X-axis.
 	float brick_row_midpoint{static_cast<float>(bricks_per_row) / 2.0F};
 	registry.ctx().emplace<ecs::components::brick_group>(glm::vec2{
-	    gap / 2.0F + window_default_width / 2 -
+	    gap / 2.0F + 5.0F -
 	        (brick_row_midpoint * brick_size.x + brick_row_midpoint * gap),
-	    32.0F});
+	    0.25F});
 }
 
 auto create_paddle(entt::registry& registry, glm::vec2 position, glm::vec2 size)
@@ -213,35 +216,19 @@ auto main(int argc, char* argv[]) -> int
 	                      nullptr,
 	                      GL_FALSE);
 
-	auto sprite_shader =
-	    yaboc::make_shader(std::vector<yaboc::shader_builder_input>{
-	        {.type = yaboc::shader_builder_input::shader_type::vertex,
-	         .path = "assets/shaders/sprite.vert.glsl"},
-	        {.type = yaboc::shader_builder_input::shader_type::fragment,
-	         .path = "assets/shaders/sprite.frag.glsl"}
-    });
-
 	int window_drawable_width = 0;
 	int window_drawable_height = 0;
 	SDL_GetWindowSizeInPixels(window,
 	                          &window_drawable_width,
 	                          &window_drawable_height);
 
-	auto projection = glm::ortho(0.0F,
-	                             static_cast<float>(window_drawable_width),
-	                             static_cast<float>(window_drawable_height),
-	                             0.0F,
-	                             -1.0F,
-	                             1.0F);
-
 	glViewport(0, 0, window_drawable_width, window_drawable_height);
 
-	glUseProgram(sprite_shader);
-	auto const proj_loc = glGetUniformLocation(sprite_shader, "projection");
-	glUniformMatrix4fv(proj_loc, 1, GL_FALSE, glm::value_ptr(projection));
+	auto renderer = std::make_unique<yaboc::sprite_renderer>(
+	    yaboc::sprite_renderer::config{});
 
 	auto render_system =
-	    yaboc::ecs::system::sprite_render_system{sprite_shader};
+	    yaboc::ecs::system::sprite_render_system{std::move(renderer)};
 
 	bool running{true};
 
@@ -249,9 +236,11 @@ auto main(int argc, char* argv[]) -> int
 
 	entt::registry registry{};
 
-	auto paddle =
-	    yaboc::create_paddle(registry, glm::vec2{400, 550}, glm::vec2{128, 32});
-	yaboc::create_ball(registry, glm::vec2{32, 32}, paddle);
+	auto paddle = yaboc::create_paddle(
+	    registry,
+	    glm::vec2{5.0F, 5.25F},
+	    glm::vec2{1.0F, 0.25F});
+	yaboc::create_ball(registry, glm::vec2{0.25F, 0.25F}, paddle);
 
 	yaboc::load_level(registry, "assets/data/levels/level_01.txt");
 

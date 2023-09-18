@@ -33,7 +33,7 @@ class sprite_render_system final
 	std::unique_ptr<sprite_renderer> m_renderer{};
 
 public:
-	explicit sprite_render_system(GLuint shader_id);
+	explicit sprite_render_system(std::unique_ptr<sprite_renderer>&& renderer);
 
 	static auto components(entt::registry& registry, entt::entity entity);
 

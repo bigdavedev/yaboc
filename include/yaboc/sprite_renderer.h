@@ -59,12 +59,19 @@ class sprite_renderer final
 
 	static constexpr std::size_t default_sprites_per_batch{1'000};
 
+	int m_pixels_per_metre{};
+
 public:
+	struct config final
+	{
+		glm::vec2 reference_resolution{640, 360};
+		int pixels_per_metre{static_cast<int>(reference_resolution.x / 10)};
+		std::size_t sprites_per_batch{default_sprites_per_batch};
+	};
+
 	~sprite_renderer();
 
-	explicit sprite_renderer(
-	    unsigned int shader_id,
-	    std::size_t  sprites_per_batch = default_sprites_per_batch);
+	explicit sprite_renderer(config&& c);
 
 	sprite_renderer(sprite_renderer const&) = delete;
 	sprite_renderer(sprite_renderer&&) = default;
@@ -75,7 +82,7 @@ public:
 	void begin_batch();
 	void end_batch();
 
-	auto submit_sprite(glm::vec2 const position, glm::vec2 const size) -> void;
+	auto submit_sprite(glm::vec2 position, glm::vec2 size) -> void;
 
 	void flush();
 };

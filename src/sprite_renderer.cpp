@@ -15,6 +15,8 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 #include "yaboc/sprite_renderer.h"
 
+#include "yaboc/shader.h"
+
 #include "glad/gl.h"
 #include "glm/gtc/type_ptr.hpp"
 
@@ -58,12 +60,11 @@ sprite_renderer::~sprite_renderer()
 	glDeleteVertexArrays(1, &m_vao);
 }
 
-sprite_renderer::sprite_renderer(unsigned int shader_id,
-                                 std::size_t  sprites_per_batch)
-    : m_shader{shader_id}
-    , m_sprites_per_batch{sprites_per_batch}
+sprite_renderer::sprite_renderer(sprite_renderer::config&& c)
+    : m_sprites_per_batch{c.sprites_per_batch}
+	, m_pixels_per_metre{c.pixels_per_metre}
 {
-	auto const verts_per_batch = verts_per_quad * sprites_per_batch;
+	auto const verts_per_batch = verts_per_quad * m_sprites_per_batch;
 	auto const vbo_size = verts_per_batch * sizeof(vertex);
 
 	m_vbo = create_empty_buffer(vbo_size * num_buffers);
@@ -107,7 +108,23 @@ sprite_renderer::sprite_renderer(unsigned int shader_id,
 	                          offsetof(vertex, uv));
 	glVertexArrayAttribBinding(m_vao, uv_attr_loc, 0);
 
+	m_shader = yaboc::make_shader(std::vector<yaboc::shader_builder_input>{
+	    {.type = yaboc::shader_builder_input::shader_type::vertex,
+	     .path = "assets/shaders/sprite.vert.glsl"},
+	    {.type = yaboc::shader_builder_input::shader_type::fragment,
+	     .path = "assets/shaders/sprite.frag.glsl"}
+    });
+
+	auto projection = glm::ortho(0.0F,
+	                             c.reference_resolution.x,
+	                             c.reference_resolution.y,
+	                             0.0F,
+	                             -1.0F,
+	                             1.0F);
+
 	glUseProgram(m_shader);
+	auto const proj_loc = glGetUniformLocation(m_shader, "projection");
+	glUniformMatrix4fv(proj_loc, 1, GL_FALSE, glm::value_ptr(projection));
 }
 
 void sprite_renderer::begin_batch()
@@ -128,8 +145,7 @@ void sprite_renderer::end_batch()
 	glUseProgram(0);
 }
 
-auto sprite_renderer::submit_sprite(glm::vec2 const position,
-                                    glm::vec2 const size) -> void
+auto sprite_renderer::submit_sprite(glm::vec2 position, glm::vec2 size) -> void
 {
 	if (m_current_sprite_count == m_sprites_per_batch)
 	{
@@ -164,6 +180,9 @@ auto sprite_renderer::submit_sprite(glm::vec2 const position,
 	    m_vertex_buffer_regions[m_current_vertex_buffer_region].region;
 	auto const vertices =
 	    current_vbo_span.subspan(current_vertex_count, verts_per_quad);
+
+	position *= m_pixels_per_metre;
+	size *= m_pixels_per_metre;
 
 	auto const top_left = position;
 	auto const top_right = glm::vec2{position.x + size.x, position.y};
