@@ -232,8 +232,6 @@ auto main(int argc, char* argv[]) -> int
 
 	bool running{true};
 
-	time_point current_time = std::chrono::steady_clock::now();
-
 	entt::registry registry{};
 
 	auto paddle = yaboc::create_paddle(
@@ -243,6 +241,11 @@ auto main(int argc, char* argv[]) -> int
 	yaboc::create_ball(registry, glm::vec2{0.25F, 0.25F}, paddle);
 
 	yaboc::load_level(registry, "assets/data/levels/level_01.txt");
+
+	// Setup timing
+	time_point t{};
+	time_point current_time = std::chrono::steady_clock::now();
+	duration accumulator{0s};
 
 	while (running)
 	{
@@ -273,6 +276,14 @@ auto main(int argc, char* argv[]) -> int
 				break;
 			}
 			}
+		}
+
+		accumulator += frame_time;
+
+		while (accumulator >= dt)
+		{
+			t += dt;
+			accumulator -= dt;
 		}
 
 		glm::vec4 clear_colour{};
