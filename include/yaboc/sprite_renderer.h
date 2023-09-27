@@ -82,7 +82,7 @@ public:
 	void begin_batch();
 	void end_batch();
 
-	auto submit_sprite(glm::vec2 position, glm::vec2 size) -> void;
+	auto submit_sprite(glm::vec2 position, glm::vec2 size, glm::vec4 tint) -> void;
 
 	void flush();
 };

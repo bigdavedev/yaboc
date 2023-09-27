@@ -41,21 +41,21 @@ void sprite_render_system::operator()(entt::registry& registry) const
 		auto position = transform.position +
 		                registry.ctx().get<components::brick_group>().offset;
 
-		m_renderer->submit_sprite(position, sprite.size);
+		m_renderer->submit_sprite(position, sprite.size, sprite.tint);
 	}
 
 	for (auto entity: registry.view<tags::player>())
 	{
 		auto [transform, sprite] = render_components(entity);
 
-		m_renderer->submit_sprite(transform.position, sprite.size);
+		m_renderer->submit_sprite(transform.position, sprite.size, sprite.tint);
 	}
 
 	for (auto entity: registry.view<tags::ball>())
 	{
 		auto [transform, sprite] = render_components(entity);
 
-		m_renderer->submit_sprite(transform.position, sprite.size);
+		m_renderer->submit_sprite(transform.position, sprite.size, sprite.tint);
 	}
 
 	m_renderer->end_batch();

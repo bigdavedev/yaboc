@@ -62,7 +62,7 @@ sprite_renderer::~sprite_renderer()
 
 sprite_renderer::sprite_renderer(sprite_renderer::config&& c)
     : m_sprites_per_batch{c.sprites_per_batch}
-	, m_pixels_per_metre{c.pixels_per_metre}
+    , m_pixels_per_metre{c.pixels_per_metre}
 {
 	auto const verts_per_batch = verts_per_quad * m_sprites_per_batch;
 	auto const vbo_size = verts_per_batch * sizeof(vertex);
@@ -145,7 +145,9 @@ void sprite_renderer::end_batch()
 	glUseProgram(0);
 }
 
-auto sprite_renderer::submit_sprite(glm::vec2 position, glm::vec2 size) -> void
+auto sprite_renderer::submit_sprite(glm::vec2 position,
+                                    glm::vec2 size,
+                                    glm::vec4 tint) -> void
 {
 	if (m_current_sprite_count == m_sprites_per_batch)
 	{
@@ -189,12 +191,12 @@ auto sprite_renderer::submit_sprite(glm::vec2 position, glm::vec2 size) -> void
 	auto const bottom_left = glm::vec2{position.x, position.y + size.y};
 	auto const bottom_right = position + size;
 
-	vertices[0] = vertex{top_right};
-	vertices[1] = vertex{bottom_left};
-	vertices[2] = vertex{top_left};
-	vertices[3] = vertex{top_right};
-	vertices[4] = vertex{bottom_right};
-	vertices[5] = vertex{bottom_left};
+	vertices[0] = vertex{.pos = top_right, .tint = tint, .uv = {}};
+	vertices[1] = vertex{.pos = bottom_left, .tint = tint, .uv = {}};
+	vertices[2] = vertex{.pos = top_left, .tint = tint, .uv = {}};
+	vertices[3] = vertex{.pos = top_right, .tint = tint, .uv = {}};
+	vertices[4] = vertex{.pos = bottom_right, .tint = tint, .uv = {}};
+	vertices[5] = vertex{.pos = bottom_left, .tint = tint, .uv = {}};
 
 	m_current_sprite_count++;
 }

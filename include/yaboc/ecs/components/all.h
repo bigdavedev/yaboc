@@ -36,6 +36,7 @@ struct relationship final
 struct sprite final
 {
 	glm::vec2 size;
+	glm::vec4 tint;
 };
 
 enum class brick_type

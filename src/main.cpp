@@ -99,7 +99,10 @@ void load_level(entt::registry& registry, std::string const& level_file)
 				                  (static_cast<float>(x) * brick_size.x),
 				              start_point.y + static_cast<float>(y) * gap +
 				                  (static_cast<float>(y) * brick_size.y)});
-				registry.emplace<sprite_component>(brick, brick_size);
+				registry.emplace<sprite_component>(
+				    brick,
+				    brick_size,
+				    glm::vec4{0.5F, 0.5F, 0.5F, 1.0F});
 
 				registry.emplace<ecs::tags::brick>(brick);
 			}
@@ -125,7 +128,10 @@ auto create_paddle(entt::registry& registry, glm::vec2 position, glm::vec2 size)
 	auto paddle = registry.create();
 	auto centered = position - (size / 2.0F);
 	registry.emplace<yaboc::ecs::components::transform>(paddle, centered);
-	registry.emplace<yaboc::ecs::components::sprite>(paddle, size);
+	registry.emplace<yaboc::ecs::components::sprite>(
+	    paddle,
+	    size,
+	    glm::vec4{0.0F, 0.0F, 1.0F, 1.0F});
 	registry.emplace<yaboc::ecs::tags::player>(paddle);
 	return paddle;
 }
@@ -145,7 +151,10 @@ auto create_ball(entt::registry& registry, glm::vec2 size, entt::entity parent)
 	              parent_transform.position.y - parent_sprite.size.y};
 
 	registry.emplace<ecs::components::transform>(ball, position);
-	registry.emplace<ecs::components::sprite>(ball, size);
+	registry.emplace<ecs::components::sprite>(
+	    ball,
+	    size,
+	    glm::vec4{0.0F, 0.75F, 0.5F, 1.0F});
 	registry.emplace<ecs::tags::ball>(ball);
 	registry.emplace<ecs::components::relationship>(ball, parent);
 
@@ -234,10 +243,9 @@ auto main(int argc, char* argv[]) -> int
 
 	entt::registry registry{};
 
-	auto paddle = yaboc::create_paddle(
-	    registry,
-	    glm::vec2{5.0F, 5.25F},
-	    glm::vec2{1.0F, 0.25F});
+	auto paddle = yaboc::create_paddle(registry,
+	                                   glm::vec2{5.0F, 5.25F},
+	                                   glm::vec2{1.0F, 0.25F});
 	yaboc::create_ball(registry, glm::vec2{0.25F, 0.25F}, paddle);
 
 	yaboc::load_level(registry, "assets/data/levels/level_01.txt");
@@ -245,7 +253,7 @@ auto main(int argc, char* argv[]) -> int
 	// Setup timing
 	time_point t{};
 	time_point current_time = std::chrono::steady_clock::now();
-	duration accumulator{0s};
+	duration   accumulator{0s};
 
 	while (running)
 	{
