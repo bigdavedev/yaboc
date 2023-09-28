@@ -17,6 +17,8 @@ include (StageConfig)
 include (Dependencies)
 include (CompilerConfig)
 
+add_compile_definitions (-DJSON_HAS_RANGES=0)
+
 add_executable (yaboc)
 
 target_include_directories (
@@ -32,6 +34,7 @@ target_sources (
 	PRIVATE
 	include/yaboc/shader.h
 	include/yaboc/sprite_renderer.h
+	include/yaboc/sprite_sheet.h
 
 	include/yaboc/ecs/components/all.h
 	include/yaboc/ecs/components/tags.h
@@ -39,6 +42,7 @@ target_sources (
 
 	src/shader.cpp
 	src/sprite_renderer.cpp
+	src/sprite_sheet.cpp
 	src/yaboc/ecs/systems/sprite_render_system.cpp
 	src/main.cpp
 )
@@ -52,4 +56,6 @@ target_link_libraries (
 	glm::glm
 	Glad::Glad
 	EnTT::EnTT
+	STB::Image
+	nlohmann_json::nlohmann_json
 )

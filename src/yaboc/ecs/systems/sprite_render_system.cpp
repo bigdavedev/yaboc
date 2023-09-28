@@ -22,13 +22,30 @@
 
 namespace yaboc::ecs::system
 {
-sprite_render_system::sprite_render_system(std::unique_ptr<sprite_renderer>&& renderer)
-	: m_renderer{std::move(renderer)}
+sprite_render_system::sprite_render_system(
+    std::unique_ptr<sprite_renderer>&& renderer,
+    sprite_sheet*                      sheet)
+    : m_renderer{std::move(renderer)}
+    , m_sprite_sheet{sheet}
 {}
 
 void sprite_render_system::operator()(entt::registry& registry) const
 {
 	m_renderer->begin_batch();
+
+	auto scale_uv = [sheet_size = m_sprite_sheet->meta_data().dimensions](
+	                    sprite_frame_data::subtexture_bounds bounds) {
+		float sheet_width{static_cast<float>(sheet_size.x)};
+		float sheet_height{static_cast<float>(sheet_size.y)};
+
+		auto min = glm::vec2{static_cast<float>(bounds.min.x) / sheet_width,
+		                     static_cast<float>(bounds.min.y) / sheet_height};
+
+		auto max = glm::vec2{static_cast<float>(bounds.max.x) / sheet_width,
+		                     static_cast<float>(bounds.max.y) / sheet_height};
+
+		return sprite_renderer::subtexture_bounds{min, max};
+	};
 
 	auto render_components = [&registry](entt::entity entity) {
 		return registry.get<components::transform, components::sprite>(entity);
@@ -38,24 +55,39 @@ void sprite_render_system::operator()(entt::registry& registry) const
 	{
 		auto [transform, sprite] = render_components(entity);
 
-		auto position = transform.position +
-		                registry.ctx().get<components::brick_group>().offset;
+		auto offset = registry.ctx().get<components::brick_group>().offset;
+		auto position = transform.position + offset;
 
-		m_renderer->submit_sprite(position, sprite.size, sprite.tint);
+		auto frame = m_sprite_sheet->frame_data(sprite.id);
+
+		m_renderer->submit_sprite(position,
+		                          sprite.size,
+		                          sprite.tint,
+		                          scale_uv(frame.bounds));
 	}
 
 	for (auto entity: registry.view<tags::player>())
 	{
 		auto [transform, sprite] = render_components(entity);
 
-		m_renderer->submit_sprite(transform.position, sprite.size, sprite.tint);
+		auto frame = m_sprite_sheet->frame_data(sprite.id);
+
+		m_renderer->submit_sprite(transform.position,
+		                          sprite.size,
+		                          sprite.tint,
+		                          scale_uv(frame.bounds));
 	}
 
 	for (auto entity: registry.view<tags::ball>())
 	{
 		auto [transform, sprite] = render_components(entity);
 
-		m_renderer->submit_sprite(transform.position, sprite.size, sprite.tint);
+		auto frame = m_sprite_sheet->frame_data(sprite.id);
+
+		m_renderer->submit_sprite(transform.position,
+		                          sprite.size,
+		                          sprite.tint,
+		                          scale_uv(frame.bounds));
 	}
 
 	m_renderer->end_batch();

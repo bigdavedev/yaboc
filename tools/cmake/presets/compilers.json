@@ -12,7 +12,7 @@
 			"name": "clang-compiler-flags",
 			"hidden": true,
 			"cacheVariables": {
-				"YABOC_CXX_FLAGS": "-Weverything;-Wno-c++98-compat-pedantic;-Wno-c++20-compat;-Wno-padded"
+				"YABOC_CXX_FLAGS": "-Weverything;-Wno-c++98-compat-pedantic;-Wno-c++20-compat;-Wno-padded;-Wno-exit-time-destructors"
 			}
 		},
 		{

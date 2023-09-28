@@ -15,8 +15,8 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 #include "yaboc/ecs/components/all.h"
 #include "yaboc/ecs/systems/sprite_render_system.h"
-#include "yaboc/shader.h"
 #include "yaboc/sprite_renderer.h"
+#include "yaboc/sprite_sheet.h"
 
 #include "entt/entt.hpp"
 #include "glad/gl.h"
@@ -27,19 +27,20 @@
 #include "SDL3/SDL_video.h"
 
 #include <chrono>
+#include <filesystem>
 #include <format>
 #include <fstream>
 #include <iostream>
 #include <memory>
 #include <string>
 
+#include "nlohmann/json.hpp"
+#include "stb_image.h"
+
 namespace
 {
-constexpr int window_default_width{1280};
+constexpr int window_default_width{1'280};
 constexpr int window_default_height{720};
-
-//constexpr int render_area_width{640};
-//constexpr int render_area_height{360};
 
 void message_callback(GLenum        source,
                       GLenum        type,
@@ -54,19 +55,30 @@ using namespace std::chrono_literals;
 constexpr auto dt = std::chrono::duration<long long, std::ratio<1, 60>>{1};
 using duration = decltype(std::chrono::steady_clock::duration{} + dt);
 using time_point = std::chrono::time_point<std::chrono::steady_clock, duration>;
-
 } // namespace
 
 namespace yaboc
 {
-auto load_level(entt::registry& registry, std::string const& level_file)
-    -> void;
-auto create_paddle(entt::registry& registry, glm::vec2 position, glm::vec2 size)
-    -> entt::entity;
-auto create_ball(entt::registry& registry, glm::vec2 size, entt::entity parent)
-    -> entt::entity;
+stbi_uc* load_sprite_sheet(sprite_sheet_meta const& sprite_sheet_meta_data);
+} // namespace yaboc
 
-void load_level(entt::registry& registry, std::string const& level_file)
+namespace yaboc
+{
+auto load_level(entt::registry&    registry,
+                std::string const& level_file,
+                std::size_t        sprite_id) -> void;
+auto create_paddle(entt::registry& registry,
+                   std::size_t     sprite_id,
+                   glm::vec2       position,
+                   glm::vec2       size) -> entt::entity;
+auto create_ball(entt::registry& registry,
+                 std::size_t     sprite_id,
+                 glm::vec2       size,
+                 entt::entity    parent) -> entt::entity;
+
+void load_level(entt::registry&    registry,
+                std::string const& level_file,
+                std::size_t        sprite_id)
 {
 	std::ifstream level_stream{level_file};
 	std::string   line{};
@@ -99,10 +111,10 @@ void load_level(entt::registry& registry, std::string const& level_file)
 				                  (static_cast<float>(x) * brick_size.x),
 				              start_point.y + static_cast<float>(y) * gap +
 				                  (static_cast<float>(y) * brick_size.y)});
-				registry.emplace<sprite_component>(
-				    brick,
-				    brick_size,
-				    glm::vec4{0.5F, 0.5F, 0.5F, 1.0F});
+				registry.emplace<sprite_component>(brick,
+				                                   sprite_id,
+				                                   brick_size,
+				                                   glm::vec4{1.0F});
 
 				registry.emplace<ecs::tags::brick>(brick);
 			}
@@ -115,29 +127,34 @@ void load_level(entt::registry& registry, std::string const& level_file)
 	}
 
 	// Ensure the bricks are centered along the X-axis.
-	float brick_row_midpoint{static_cast<float>(bricks_per_row) / 2.0F};
+	auto brick_row_midpoint = static_cast<float>(bricks_per_row) / 2.0F;
 	registry.ctx().emplace<ecs::components::brick_group>(glm::vec2{
-	    gap / 2.0F + 5.0F -
-	        (brick_row_midpoint * brick_size.x + brick_row_midpoint * gap),
-	    0.25F});
+	    (gap / 2.0F + 5.0F -
+	     (brick_row_midpoint * (brick_size.x) + brick_row_midpoint * gap)) +
+	        brick_size.x / 2.0F,
+	    0.25F + brick_size.y / 2.0F});
 }
 
-auto create_paddle(entt::registry& registry, glm::vec2 position, glm::vec2 size)
-    -> entt::entity
+auto create_paddle(entt::registry& registry,
+                   std::size_t     sprite_id,
+                   glm::vec2       position,
+                   glm::vec2       size) -> entt::entity
 {
+	static_cast<void>(sprite_id);
 	auto paddle = registry.create();
-	auto centered = position - (size / 2.0F);
-	registry.emplace<yaboc::ecs::components::transform>(paddle, centered);
-	registry.emplace<yaboc::ecs::components::sprite>(
-	    paddle,
-	    size,
-	    glm::vec4{0.0F, 0.0F, 1.0F, 1.0F});
+	registry.emplace<yaboc::ecs::components::transform>(paddle, position);
+	registry.emplace<yaboc::ecs::components::sprite>(paddle,
+	                                                 sprite_id,
+	                                                 size,
+	                                                 glm::vec4{1.0F});
 	registry.emplace<yaboc::ecs::tags::player>(paddle);
 	return paddle;
 }
 
-auto create_ball(entt::registry& registry, glm::vec2 size, entt::entity parent)
-    -> entt::entity
+auto create_ball(entt::registry& registry,
+                 std::size_t     sprite_id,
+                 glm::vec2       size,
+                 entt::entity    parent) -> entt::entity
 {
 	auto ball = registry.create();
 
@@ -146,15 +163,14 @@ auto create_ball(entt::registry& registry, glm::vec2 size, entt::entity parent)
 	        parent);
 
 	auto position =
-	    glm::vec2{parent_transform.position.x + parent_sprite.size.x / 2.0F -
-	                  size.x / 2.0F,
+	    glm::vec2{parent_transform.position.x,
 	              parent_transform.position.y - parent_sprite.size.y};
 
 	registry.emplace<ecs::components::transform>(ball, position);
-	registry.emplace<ecs::components::sprite>(
-	    ball,
-	    size,
-	    glm::vec4{0.0F, 0.75F, 0.5F, 1.0F});
+	registry.emplace<ecs::components::sprite>(ball,
+	                                          sprite_id,
+	                                          size,
+	                                          glm::vec4{1.0F});
 	registry.emplace<ecs::tags::ball>(ball);
 	registry.emplace<ecs::components::relationship>(ball, parent);
 
@@ -215,6 +231,9 @@ auto main(int argc, char* argv[]) -> int
 
 	gladLoadGL(SDL_GL_GetProcAddress);
 
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	glEnable(GL_DEBUG_OUTPUT);
 	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 	glDebugMessageCallback(message_callback, nullptr);
@@ -233,27 +252,82 @@ auto main(int argc, char* argv[]) -> int
 
 	glViewport(0, 0, window_drawable_width, window_drawable_height);
 
+	bool running{true};
+
+	auto sprite_sheet =
+	    yaboc::sprite_sheet{"assets/data/sprites/sprite_sheet.json"};
+
+	auto paddle_sprite_id = sprite_sheet.id_from_name("entity/paddleRed");
+	auto paddle_sprite_data = sprite_sheet.frame_data(paddle_sprite_id);
+
+	auto const& sprite_sheet_meta_data = sprite_sheet.meta_data();
+	auto* sprite_sheet_pixel_data = load_sprite_sheet(sprite_sheet_meta_data);
+
+	GLuint sprite_sheet_texture_id{};
+	glCreateTextures(GL_TEXTURE_2D, 1, &sprite_sheet_texture_id);
+
+	glTextureParameteri(sprite_sheet_texture_id,
+	                    GL_TEXTURE_WRAP_S,
+	                    GL_CLAMP_TO_EDGE);
+	glTextureParameteri(sprite_sheet_texture_id,
+	                    GL_TEXTURE_WRAP_T,
+	                    GL_CLAMP_TO_EDGE);
+	glTextureParameteri(sprite_sheet_texture_id,
+	                    GL_TEXTURE_MIN_FILTER,
+	                    GL_NEAREST);
+	glTextureParameteri(sprite_sheet_texture_id,
+	                    GL_TEXTURE_MAG_FILTER,
+	                    GL_NEAREST);
+
+	glTextureStorage2D(sprite_sheet_texture_id,
+	                   1,
+	                   GL_RGBA8,
+	                   sprite_sheet_meta_data.dimensions.x,
+	                   sprite_sheet_meta_data.dimensions.y);
+
+	glTextureSubImage2D(sprite_sheet_texture_id,
+	                    0,
+	                    0,
+	                    0,
+	                    sprite_sheet_meta_data.dimensions.x,
+	                    sprite_sheet_meta_data.dimensions.y,
+	                    GL_RGBA,
+	                    GL_UNSIGNED_BYTE,
+	                    sprite_sheet_pixel_data);
+
+	entt::registry registry{};
+
+	auto paddle =
+	    yaboc::create_paddle(registry,
+	                         sprite_sheet.id_from_name("entity/paddleRed"),
+	                         glm::vec2{5.0F, 5.25F},
+	                         glm::vec2{1.0F, 0.25F});
+	yaboc::create_ball(registry,
+	                   sprite_sheet.id_from_name("entity/ballGrey"),
+	                   glm::vec2{0.25F, 0.25F},
+	                   paddle);
+
+	yaboc::load_level(
+	    registry,
+	    "assets/data/levels/level_01.txt",
+	    sprite_sheet.id_from_name("entity/element_grey_rectangle"));
+
 	auto renderer = std::make_unique<yaboc::sprite_renderer>(
 	    yaboc::sprite_renderer::config{});
 
 	auto render_system =
-	    yaboc::ecs::system::sprite_render_system{std::move(renderer)};
-
-	bool running{true};
-
-	entt::registry registry{};
-
-	auto paddle = yaboc::create_paddle(registry,
-	                                   glm::vec2{5.0F, 5.25F},
-	                                   glm::vec2{1.0F, 0.25F});
-	yaboc::create_ball(registry, glm::vec2{0.25F, 0.25F}, paddle);
-
-	yaboc::load_level(registry, "assets/data/levels/level_01.txt");
+	    yaboc::ecs::system::sprite_render_system{std::move(renderer),
+	                                             &sprite_sheet};
 
 	// Setup timing
 	time_point t{};
 	time_point current_time = std::chrono::steady_clock::now();
 	duration   accumulator{0s};
+
+	auto seconds_now = std::chrono::time_point_cast<std::chrono::seconds>(
+	    std::chrono::steady_clock::now());
+	int frame_rate{};
+	int frame_count{};
 
 	while (running)
 	{
@@ -264,9 +338,20 @@ auto main(int argc, char* argv[]) -> int
 		auto const seconds =
 		    std::chrono::duration_cast<std::chrono::duration<float>>(
 		        frame_time);
-		auto const title =
-		    std::format("Yet Another Breakout Clone. Frame time: {:1.5f}",
-		                seconds.count());
+
+		auto prev_seconds = seconds_now;
+		seconds_now = std::chrono::time_point_cast<std::chrono::seconds>(
+		    std::chrono::steady_clock::now());
+		frame_count++;
+		if (seconds_now != prev_seconds)
+		{
+			frame_rate = frame_count;
+			frame_count = 0;
+		}
+		auto const title = std::format(
+		    "Yet Another Breakout Clone. Frame time: {:1.5f} FPS {:d}",
+		    seconds.count(),
+		    frame_rate);
 		SDL_SetWindowTitle(window, title.c_str());
 
 		SDL_Event sdl_event{};
@@ -294,16 +379,38 @@ auto main(int argc, char* argv[]) -> int
 			accumulator -= dt;
 		}
 
-		glm::vec4 clear_colour{};
+		glm::vec4 clear_colour{0.157, 0.157, 0.157, 1.0f};
 		glClearBufferfv(GL_COLOR, 0, glm::value_ptr(clear_colour));
 
+		glBindTextureUnit(0, sprite_sheet_texture_id);
 		render_system(registry);
 
 		SDL_GL_SwapWindow(window);
 	}
 
+	glDeleteTextures(1, &sprite_sheet_texture_id);
+
 	return 0;
 }
+
+namespace yaboc
+{
+auto load_sprite_sheet(sprite_sheet_meta const& sprite_sheet_meta_data)
+    -> stbi_uc*
+{
+	int   stb_x{}, stb_y{}, stb_num_channels{};
+	auto* sprite_sheet_pizel_data =
+	    stbi_load(sprite_sheet_meta_data.name.c_str(),
+	              &stb_x,
+	              &stb_y,
+	              &stb_num_channels,
+	              0);
+
+	assert(stb_x == sprite_sheet_meta_data.dimensions.x);
+	assert(stb_y == sprite_sheet_meta_data.dimensions.y);
+	return sprite_sheet_pizel_data;
+}
+} // namespace yaboc
 
 namespace
 {

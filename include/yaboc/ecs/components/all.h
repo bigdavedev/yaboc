@@ -21,6 +21,8 @@
 #include "entt/entt.hpp"
 #include "glm/glm.hpp"
 
+#include <cstddef>
+
 namespace yaboc::ecs::components
 {
 struct transform final
@@ -35,6 +37,7 @@ struct relationship final
 
 struct sprite final
 {
+	std::size_t id;
 	glm::vec2 size;
 	glm::vec4 tint;
 };

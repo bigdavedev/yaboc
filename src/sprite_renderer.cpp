@@ -145,9 +145,10 @@ void sprite_renderer::end_batch()
 	glUseProgram(0);
 }
 
-auto sprite_renderer::submit_sprite(glm::vec2 position,
-                                    glm::vec2 size,
-                                    glm::vec4 tint) -> void
+auto sprite_renderer::submit_sprite(glm::vec2         position,
+                                    glm::vec2         size,
+                                    glm::vec4         tint,
+                                    subtexture_bounds uv_bounds) -> void
 {
 	if (m_current_sprite_count == m_sprites_per_batch)
 	{
@@ -185,18 +186,32 @@ auto sprite_renderer::submit_sprite(glm::vec2 position,
 
 	position *= m_pixels_per_metre;
 	size *= m_pixels_per_metre;
+	size /= 2.0F;
 
-	auto const top_left = position;
-	auto const top_right = glm::vec2{position.x + size.x, position.y};
-	auto const bottom_left = glm::vec2{position.x, position.y + size.y};
-	auto const bottom_right = position + size;
+	glm::vec2 min_pos{position - size};
+	glm::vec2 max_pos{position + size};
 
-	vertices[0] = vertex{.pos = top_right, .tint = tint, .uv = {}};
-	vertices[1] = vertex{.pos = bottom_left, .tint = tint, .uv = {}};
-	vertices[2] = vertex{.pos = top_left, .tint = tint, .uv = {}};
-	vertices[3] = vertex{.pos = top_right, .tint = tint, .uv = {}};
-	vertices[4] = vertex{.pos = bottom_right, .tint = tint, .uv = {}};
-	vertices[5] = vertex{.pos = bottom_left, .tint = tint, .uv = {}};
+	auto const top_left =
+	    vertex{.pos = min_pos, .tint = tint, .uv = uv_bounds.min};
+	auto const top_right = vertex{
+	    .pos = glm::vec2{max_pos.x,       min_pos.y      },
+	    .tint = tint,
+	    .uv = {uv_bounds.max.x, uv_bounds.min.y}
+    };
+	auto const bottom_left = vertex{
+	    .pos = glm::vec2{min_pos.x,       max_pos.y      },
+	    .tint = tint,
+	    .uv = {uv_bounds.min.x, uv_bounds.max.y}
+    };
+	auto const bottom_right =
+	    vertex{.pos = max_pos, .tint = tint, .uv = uv_bounds.max};
+
+	vertices[0] = bottom_left;
+	vertices[1] = top_right;
+	vertices[2] = top_left;
+	vertices[3] = bottom_left;
+	vertices[4] = bottom_right;
+	vertices[5] = top_right;
 
 	m_current_sprite_count++;
 }

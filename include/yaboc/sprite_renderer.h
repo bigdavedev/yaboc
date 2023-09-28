@@ -69,6 +69,12 @@ public:
 		std::size_t sprites_per_batch{default_sprites_per_batch};
 	};
 
+	struct subtexture_bounds final
+	{
+		glm::vec2 min{};
+		glm::vec2 max{};
+	};
+
 	~sprite_renderer();
 
 	explicit sprite_renderer(config&& c);
@@ -82,7 +88,10 @@ public:
 	void begin_batch();
 	void end_batch();
 
-	auto submit_sprite(glm::vec2 position, glm::vec2 size, glm::vec4 tint) -> void;
+	auto submit_sprite(glm::vec2         position,
+	                   glm::vec2         size,
+	                   glm::vec4         tint,
+	                   subtexture_bounds uv_bounds) -> void;
 
 	void flush();
 };
