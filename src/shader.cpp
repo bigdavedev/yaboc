@@ -50,7 +50,8 @@ namespace
 	}
 } // namespace
 
-auto make_shader(std::vector<shader_builder_input> const& inputs) -> unsigned int
+auto make_shader(std::vector<shader_builder_input> const& inputs)
+    -> unsigned int
 {
 	auto program_id{glCreateProgram()};
 
@@ -64,7 +65,7 @@ auto make_shader(std::vector<shader_builder_input> const& inputs) -> unsigned in
 
 		std::stringstream file_contents{};
 		file_contents << file.rdbuf();
-		auto        code      = file_contents.str();
+		auto        code = file_contents.str();
 		auto const* code_cstr = code.c_str();
 		glShaderSource(shader_id, 1, &code_cstr, nullptr);
 		glCompileShader(shader_id);
@@ -99,10 +100,10 @@ namespace
 			std::string message{};
 			message.resize(static_cast<std::size_t>(log_length));
 			glGetShaderInfoLog(shader_id, log_length, nullptr, message.data());
-//			spdlog::default_logger()->error(
-//			    "Failed to compiler shader (id: {}): {}",
-//			    shader_id,
-//			    message);
+			//			spdlog::default_logger()->error(
+			//			    "Failed to compiler shader (id: {}): {}",
+			//			    shader_id,
+			//			    message);
 			return false;
 		}
 		return true;
@@ -122,10 +123,10 @@ namespace
 			                    log_length,
 			                    nullptr,
 			                    message.data());
-//			spdlog::default_logger()->error(
-//			    "Failed to compiler shader (id: {}): {}",
-//			    program_id,
-//			    message);
+			//			spdlog::default_logger()->error(
+			//			    "Failed to compiler shader (id: {}): {}",
+			//			    program_id,
+			//			    message);
 			return false;
 		}
 		return true;

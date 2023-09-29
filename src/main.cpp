@@ -22,9 +22,11 @@
 #include "glad/gl.h"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
+#include "nlohmann/json.hpp"
 #include "SDL3/SDL_events.h"
 #include "SDL3/SDL_init.h"
 #include "SDL3/SDL_video.h"
+#include "stb_image.h"
 
 #include <chrono>
 #include <filesystem>
@@ -33,9 +35,6 @@
 #include <iostream>
 #include <memory>
 #include <string>
-
-#include "nlohmann/json.hpp"
-#include "stb_image.h"
 
 namespace
 {

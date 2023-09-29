@@ -37,7 +37,8 @@ struct shader_builder_input final
 	std::string path;
 };
 
-auto make_shader(std::vector<shader_builder_input> const& inputs) -> unsigned int;
+auto make_shader(std::vector<shader_builder_input> const& inputs)
+    -> unsigned int;
 } // namespace yaboc
 
 #endif // YABOC_INCLUDE_YABOC_SHADER_H

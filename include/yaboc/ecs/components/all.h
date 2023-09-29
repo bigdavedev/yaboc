@@ -38,8 +38,8 @@ struct relationship final
 struct sprite final
 {
 	std::size_t id;
-	glm::vec2 size;
-	glm::vec4 tint;
+	glm::vec2   size;
+	glm::vec4   tint;
 };
 
 enum class brick_type

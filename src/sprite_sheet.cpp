@@ -15,11 +15,11 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 #include "yaboc/sprite_sheet.h"
 
+#include "nlohmann/json.hpp"
+
 #include <cstddef>
 #include <fstream>
 #include <iostream>
-
-#include "nlohmann/json.hpp"
 
 namespace yaboc
 {

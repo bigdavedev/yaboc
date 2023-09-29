@@ -102,7 +102,7 @@ IncludeCategories:
     Priority:        1
     CaseSensitive:   true
     # Yaboc dedendencies
-  - Regex:           '("(SDL3|glad|glm|entt))'
+  - Regex:           '("(SDL3|glad|glm|entt|nlohmann|stb))'
     Priority:        2
     CaseSensitive:   true
     # C++ standard library headers.
