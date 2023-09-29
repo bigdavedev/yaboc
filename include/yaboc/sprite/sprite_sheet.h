@@ -13,8 +13,8 @@
 //
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
-#ifndef YABOC_INCLUDE_YABOC_SPRITE_SHEET_H
-#define YABOC_INCLUDE_YABOC_SPRITE_SHEET_H
+#ifndef YABOC_INCLUDE_YABOC_SPRITE_SPRITE_SHEET_H
+#define YABOC_INCLUDE_YABOC_SPRITE_SPRITE_SHEET_H
 
 #include "glm/glm.hpp"
 
@@ -22,7 +22,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace yaboc
+namespace yaboc::sprite
 {
 enum class image_format : int
 {
@@ -73,6 +73,6 @@ public:
 		return m_sprite_frame_data[sprite_id];
 	}
 };
-} // namespace yaboc
+} // namespace yaboc::sprite
 
-#endif // YABOC_INCLUDE_YABOC_SPRITE_SHEET_H
+#endif // YABOC_INCLUDE_YABOC_SPRITE_SPRITE_SHEET_H

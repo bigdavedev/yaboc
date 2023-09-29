@@ -16,15 +16,15 @@
 #include "yaboc/ecs/systems/sprite_render_system.h"
 
 #include "yaboc/ecs/components/all.h"
-#include "yaboc/sprite_renderer.h"
+#include "yaboc/sprite/sprite_renderer.h"
 
 #include "entt/entt.hpp"
 
 namespace yaboc::ecs::system
 {
 sprite_render_system::sprite_render_system(
-    std::unique_ptr<sprite_renderer>&& renderer,
-    sprite_sheet*                      sheet)
+    std::unique_ptr<sprite::sprite_renderer>&& renderer,
+    sprite::sprite_sheet*                      sheet)
     : m_renderer{std::move(renderer)}
     , m_sprite_sheet{sheet}
 {}
@@ -34,7 +34,7 @@ void sprite_render_system::operator()(entt::registry& registry) const
 	m_renderer->begin_batch();
 
 	auto scale_uv = [sheet_size = m_sprite_sheet->meta_data().dimensions](
-	                    sprite_frame_data::subtexture_bounds bounds) {
+	                    sprite::sprite_frame_data::subtexture_bounds bounds) {
 		float sheet_width{static_cast<float>(sheet_size.x)};
 		float sheet_height{static_cast<float>(sheet_size.y)};
 
@@ -44,7 +44,7 @@ void sprite_render_system::operator()(entt::registry& registry) const
 		auto max = glm::vec2{static_cast<float>(bounds.max.x) / sheet_width,
 		                     static_cast<float>(bounds.max.y) / sheet_height};
 
-		return sprite_renderer::subtexture_bounds{min, max};
+		return sprite::sprite_renderer::subtexture_bounds{min, max};
 	};
 
 	auto render_components = [&registry](entt::entity entity) {

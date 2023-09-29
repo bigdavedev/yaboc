@@ -13,9 +13,9 @@
 //
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
-#include "yaboc/sprite_renderer.h"
+#include "yaboc/sprite/sprite_renderer.h"
 
-#include "yaboc/shader.h"
+#include "yaboc/graphics/shader.h"
 
 #include "glad/gl.h"
 #include "glm/gtc/type_ptr.hpp"
@@ -25,7 +25,7 @@
 
 static_assert(sizeof(glm::vec2) == (sizeof(float) * 2));
 
-namespace yaboc
+namespace yaboc::sprite
 {
 namespace
 {
@@ -235,4 +235,4 @@ void sprite_renderer::flush()
 		m_current_vertex_buffer_region = 0;
 	}
 }
-} // namespace yaboc
+} // namespace yaboc::sprite

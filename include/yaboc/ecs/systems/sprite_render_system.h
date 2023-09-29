@@ -16,28 +16,28 @@
 #ifndef YABOC_ECS_SYSTEMS_SPRITE_RENDER_SYSTEM_H
 #define YABOC_ECS_SYSTEMS_SPRITE_RENDER_SYSTEM_H
 
-#include "yaboc/sprite_sheet.h"
+#include "yaboc/sprite/sprite_sheet.h"
 
 #include "entt/fwd.hpp"
 #include "glad/gl.h"
 
 #include <memory>
 
-namespace yaboc
+namespace yaboc::sprite
 {
 class sprite_renderer;
-} // namespace yaboc
+} // namespace yaboc::sprite
 
 namespace yaboc::ecs::system
 {
 class sprite_render_system final
 {
-	std::unique_ptr<sprite_renderer> m_renderer{};
-	sprite_sheet*                    m_sprite_sheet{};
+	std::unique_ptr<sprite::sprite_renderer> m_renderer{};
+	sprite::sprite_sheet*                    m_sprite_sheet{};
 
 public:
-	sprite_render_system(std::unique_ptr<sprite_renderer>&& renderer,
-	                     sprite_sheet*                      sheet);
+	sprite_render_system(std::unique_ptr<sprite::sprite_renderer>&& renderer,
+	                     sprite::sprite_sheet*                      sheet);
 
 	void operator()(entt::registry& registry) const;
 };

@@ -13,8 +13,8 @@
 //
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
-#ifndef YABOC_INCLUDE_YABOC_SHADER_H
-#define YABOC_INCLUDE_YABOC_SHADER_H
+#ifndef YABOC_INCLUDE_YABOC_GRAPHICS_SHADER_H
+#define YABOC_INCLUDE_YABOC_GRAPHICS_SHADER_H
 
 #include <string>
 #include <vector>
@@ -41,4 +41,4 @@ auto make_shader(std::vector<shader_builder_input> const& inputs)
     -> unsigned int;
 } // namespace yaboc
 
-#endif // YABOC_INCLUDE_YABOC_SHADER_H
+#endif // YABOC_INCLUDE_YABOC_GRAPHICS_SHADER_H

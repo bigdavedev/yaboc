@@ -32,17 +32,17 @@ target_sources (
 	yaboc
 
 	PRIVATE
-	include/yaboc/shader.h
-	include/yaboc/sprite_renderer.h
-	include/yaboc/sprite_sheet.h
+	include/yaboc/graphics/shader.h
+	include/yaboc/sprite/sprite_renderer.h
+	include/yaboc/sprite/sprite_sheet.h
 
 	include/yaboc/ecs/components/all.h
 	include/yaboc/ecs/components/tags.h
 	include/yaboc/ecs/systems/sprite_render_system.h
 
-	src/shader.cpp
-	src/sprite_renderer.cpp
-	src/sprite_sheet.cpp
+	src/yaboc/graphics/shader.cpp
+	src/yaboc/sprite/sprite_renderer.cpp
+	src/yaboc/sprite/sprite_sheet.cpp
 	src/yaboc/ecs/systems/sprite_render_system.cpp
 	src/main.cpp
 )

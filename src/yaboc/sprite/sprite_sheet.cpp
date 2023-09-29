@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
-#include "yaboc/sprite_sheet.h"
+#include "yaboc/sprite/sprite_sheet.h"
 
 #include "nlohmann/json.hpp"
 
@@ -21,7 +21,7 @@
 #include <fstream>
 #include <iostream>
 
-namespace yaboc
+namespace yaboc::sprite
 {
 
 NLOHMANN_JSON_SERIALIZE_ENUM(image_format,
@@ -33,7 +33,7 @@ void from_json(nlohmann::json const& json, sprite_sheet_meta& meta);
 void from_json(nlohmann::json const& json, sprite_frame_data& sprite);
 void from_json(nlohmann::json const&                 json,
                sprite_frame_data::subtexture_bounds& bounds);
-} // namespace yaboc
+} // namespace yaboc::sprite
 
 namespace nlohmann
 {
@@ -62,7 +62,7 @@ struct adl_serializer<glm::vec<Dimensions, T>>
 };
 } // namespace nlohmann
 
-namespace yaboc
+namespace yaboc::sprite
 {
 sprite_sheet::sprite_sheet(std::string&& specification_path)
 {
@@ -89,10 +89,7 @@ auto sprite_sheet::id_from_name(std::string const& name) const -> std::size_t
 	assert(iterator != std::end(m_id_lookup));
 	return iterator->second;
 }
-} // namespace yaboc
 
-namespace yaboc
-{
 void from_json(nlohmann::json const& json, sprite_frame_data& sprite)
 {
 	json.at("filename").get_to<std::string>(sprite.name);
@@ -117,4 +114,4 @@ void from_json(nlohmann::json const& json, sprite_sheet_meta& meta)
 	json.at("size").get_to<glm::ivec2>(meta.dimensions);
 	json.at("format").get_to<image_format>(meta.format);
 }
-} // namespace yaboc
+} // namespace yaboc::sprite

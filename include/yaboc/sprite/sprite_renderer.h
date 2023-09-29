@@ -13,8 +13,8 @@
 //
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
-#ifndef YABOC_INCLUDE_YABOC_SPRITE_RENDERER_H
-#define YABOC_INCLUDE_YABOC_SPRITE_RENDERER_H
+#ifndef YABOC_INCLUDE_YABOC_SPRITE_SPRITE_RENDERER_H
+#define YABOC_INCLUDE_YABOC_SPRITE_SPRITE_RENDERER_H
 
 #include "glad/gl.h"
 #include "glm/glm.hpp"
@@ -22,7 +22,7 @@
 #include <array>
 #include <span>
 
-namespace yaboc
+namespace yaboc::sprite
 {
 class sprite_renderer final
 {
@@ -95,6 +95,6 @@ public:
 
 	void flush();
 };
-} // namespace yaboc
+} // namespace yaboc::sprite
 
-#endif // YABOC_INCLUDE_YABOC_SPRITE_RENDERER_H
+#endif // YABOC_INCLUDE_YABOC_SPRITE_SPRITE_RENDERER_H

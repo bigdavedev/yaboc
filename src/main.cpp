@@ -15,8 +15,8 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 #include "yaboc/ecs/components/all.h"
 #include "yaboc/ecs/systems/sprite_render_system.h"
-#include "yaboc/sprite_renderer.h"
-#include "yaboc/sprite_sheet.h"
+#include "yaboc/sprite/sprite_renderer.h"
+#include "yaboc/sprite/sprite_sheet.h"
 
 #include "entt/entt.hpp"
 #include "glad/gl.h"
@@ -62,7 +62,8 @@ using time_point = std::chrono::time_point<std::chrono::steady_clock, duration>;
 
 namespace yaboc
 {
-stbi_uc* load_sprite_sheet(sprite_sheet_meta const& sprite_sheet_meta_data);
+auto load_sprite_sheet(sprite::sprite_sheet_meta const& sprite_sheet_meta_data)
+    -> stbi_uc*;
 } // namespace yaboc
 
 namespace yaboc
@@ -258,13 +259,14 @@ auto main(int argc, char* argv[]) -> int
 	bool running{true};
 
 	auto sprite_sheet =
-	    yaboc::sprite_sheet{"assets/data/sprites/sprite_sheet.json"};
+	    yaboc::sprite::sprite_sheet{"assets/data/sprites/sprite_sheet.json"};
 
 	auto paddle_sprite_id = sprite_sheet.id_from_name("entity/paddleRed");
 	auto paddle_sprite_data = sprite_sheet.frame_data(paddle_sprite_id);
 
 	auto const& sprite_sheet_meta_data = sprite_sheet.meta_data();
-	auto* sprite_sheet_pixel_data = load_sprite_sheet(sprite_sheet_meta_data);
+	auto*       sprite_sheet_pixel_data =
+	    yaboc::load_sprite_sheet(sprite_sheet_meta_data);
 
 	GLuint sprite_sheet_texture_id{};
 	glCreateTextures(GL_TEXTURE_2D, 1, &sprite_sheet_texture_id);
@@ -317,8 +319,8 @@ auto main(int argc, char* argv[]) -> int
 	    "assets/data/levels/level_01.txt",
 	    sprite_sheet.id_from_name("entity/element_grey_rectangle"));
 
-	auto renderer = std::make_unique<yaboc::sprite_renderer>(
-	    yaboc::sprite_renderer::configuration{});
+	auto renderer = std::make_unique<yaboc::sprite::sprite_renderer>(
+	    yaboc::sprite::sprite_renderer::configuration{});
 
 	auto render_system =
 	    yaboc::ecs::system::sprite_render_system{std::move(renderer),
@@ -399,7 +401,7 @@ auto main(int argc, char* argv[]) -> int
 
 namespace yaboc
 {
-auto load_sprite_sheet(sprite_sheet_meta const& sprite_sheet_meta_data)
+auto load_sprite_sheet(sprite::sprite_sheet_meta const& sprite_sheet_meta_data)
     -> stbi_uc*
 {
 	glm::ivec2 dimensions{};
