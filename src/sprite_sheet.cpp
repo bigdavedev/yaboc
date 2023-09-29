@@ -24,15 +24,15 @@
 namespace yaboc
 {
 
-	NLOHMANN_JSON_SERIALIZE_ENUM(image_format,
-	                             {
-	                                 {image_format::rgba_8888, "RGBA8888"}
-    })
+NLOHMANN_JSON_SERIALIZE_ENUM(image_format,
+                             {
+                                 {image_format::rgba_8888, "RGBA8888"}
+})
 
-	void from_json(nlohmann::json const& json, sprite_sheet_meta& meta);
-	void from_json(nlohmann::json const& json, sprite_frame_data& sprite);
-	void from_json(nlohmann::json const&              json,
-	               sprite_frame_data::subtexture_bounds& bounds);
+void from_json(nlohmann::json const& json, sprite_sheet_meta& meta);
+void from_json(nlohmann::json const& json, sprite_frame_data& sprite);
+void from_json(nlohmann::json const&                 json,
+               sprite_frame_data::subtexture_bounds& bounds);
 } // namespace yaboc
 
 namespace nlohmann
@@ -40,21 +40,23 @@ namespace nlohmann
 template <int Dimensions, class T>
 struct adl_serializer<glm::vec<Dimensions, T>>
 {
-	static void from_json(json const& j, glm::vec<Dimensions, T>& vec)
+	static void from_json(json const& json_object, glm::vec<Dimensions, T>& vec)
 	{
 		if constexpr (Dimensions >= 1)
 		{
-			vec.x = j.contains("w") ? j.at("w").get<T>() : j.at("x").get<T>();
+			vec.x = json_object.contains("w") ? json_object.at("w").get<T>()
+			                                  : json_object.at("x").get<T>();
 		}
 
 		if constexpr (Dimensions >= 2)
 		{
-			vec.y = j.contains("h") ? j.at("h").get<T>() : j.at("y").get<T>();
+			vec.y = json_object.contains("h") ? json_object.at("h").get<T>()
+			                                  : json_object.at("y").get<T>();
 		}
 
 		if constexpr (Dimensions >= 3)
 		{
-			j.at("z").get_to<T>(vec.z);
+			json_object.at("z").get_to<T>(vec.z);
 		}
 	}
 };
@@ -91,28 +93,28 @@ auto sprite_sheet::id_from_name(std::string const& name) const -> std::size_t
 
 namespace yaboc
 {
-	void from_json(nlohmann::json const& json, sprite_frame_data& sprite)
-	{
-		json.at("filename").get_to<std::string>(sprite.name);
-		json.at("frame").get_to<sprite_frame_data::subtexture_bounds>(
-		    sprite.bounds);
-		json.at("sourceSize").get_to<glm::ivec2>(sprite.size);
-	}
+void from_json(nlohmann::json const& json, sprite_frame_data& sprite)
+{
+	json.at("filename").get_to<std::string>(sprite.name);
+	json.at("frame").get_to<sprite_frame_data::subtexture_bounds>(
+	    sprite.bounds);
+	json.at("sourceSize").get_to<glm::ivec2>(sprite.size);
+}
 
-	void from_json(nlohmann::json const&              json,
-	               sprite_frame_data::subtexture_bounds& bounds)
-	{
-		bounds.min.x = json.at("x").get<int>();
-		bounds.min.y = json.at("y").get<int>();
-		bounds.max.x = bounds.min.x + json.at("w").get<int>();
-		bounds.max.y = bounds.min.y + json.at("h").get<int>();
-	}
+void from_json(nlohmann::json const&                 json,
+               sprite_frame_data::subtexture_bounds& bounds)
+{
+	bounds.min.x = json.at("x").get<int>();
+	bounds.min.y = json.at("y").get<int>();
+	bounds.max.x = bounds.min.x + json.at("w").get<int>();
+	bounds.max.y = bounds.min.y + json.at("h").get<int>();
+}
 
-	void from_json(nlohmann::json const& json, sprite_sheet_meta& meta)
-	{
-		meta.name = std::filesystem::path{"assets/data/sprites/"} /
-		            json.at("image").get<std::string>();
-		json.at("size").get_to<glm::ivec2>(meta.dimensions);
-		json.at("format").get_to<image_format>(meta.format);
-	}
+void from_json(nlohmann::json const& json, sprite_sheet_meta& meta)
+{
+	meta.name = std::filesystem::path{"assets/data/sprites/"} /
+	            json.at("image").get<std::string>();
+	json.at("size").get_to<glm::ivec2>(meta.dimensions);
+	json.at("format").get_to<image_format>(meta.format);
+}
 } // namespace yaboc

@@ -60,9 +60,9 @@ sprite_renderer::~sprite_renderer()
 	glDeleteVertexArrays(1, &m_vao);
 }
 
-sprite_renderer::sprite_renderer(sprite_renderer::config&& c)
-    : m_sprites_per_batch{c.sprites_per_batch}
-    , m_pixels_per_metre{c.pixels_per_metre}
+sprite_renderer::sprite_renderer(sprite_renderer::configuration&& config)
+    : m_sprites_per_batch{config.sprites_per_batch}
+    , m_pixels_per_metre{config.pixels_per_metre}
 {
 	auto const verts_per_batch = verts_per_quad * m_sprites_per_batch;
 	auto const vbo_size = verts_per_batch * sizeof(vertex);
@@ -116,8 +116,8 @@ sprite_renderer::sprite_renderer(sprite_renderer::config&& c)
     });
 
 	auto projection = glm::ortho(0.0F,
-	                             c.reference_resolution.x,
-	                             c.reference_resolution.y,
+	                             config.reference_resolution.x,
+	                             config.reference_resolution.y,
 	                             0.0F,
 	                             -1.0F,
 	                             1.0F);

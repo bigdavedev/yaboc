@@ -42,6 +42,10 @@ namespace
 constexpr int window_default_width{1'280};
 constexpr int window_default_height{720};
 
+constexpr int       opengl_major_version{4};
+constexpr int       opengl_minor_version{6};
+constexpr glm::vec4 clear_colour{0.157F, 0.157F, 0.157F, 1.0F};
+
 void message_callback(GLenum        source,
                       GLenum        type,
                       GLuint        id,
@@ -213,8 +217,8 @@ auto main(int argc, char* argv[]) -> int
 	                    SDL_GL_CONTEXT_PROFILE_CORE);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS,
 	                    SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, opengl_major_version);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, opengl_minor_version);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, SDL_TRUE);
 
 	SDL_Window* window = SDL_CreateWindow("Yet Another Breakout Clone",
@@ -295,6 +299,8 @@ auto main(int argc, char* argv[]) -> int
 	                    GL_UNSIGNED_BYTE,
 	                    sprite_sheet_pixel_data);
 
+	glGenerateTextureMipmap(sprite_sheet_texture_id);
+
 	entt::registry registry{};
 
 	auto paddle =
@@ -313,14 +319,14 @@ auto main(int argc, char* argv[]) -> int
 	    sprite_sheet.id_from_name("entity/element_grey_rectangle"));
 
 	auto renderer = std::make_unique<yaboc::sprite_renderer>(
-	    yaboc::sprite_renderer::config{});
+	    yaboc::sprite_renderer::configuration{});
 
 	auto render_system =
 	    yaboc::ecs::system::sprite_render_system{std::move(renderer),
 	                                             &sprite_sheet};
 
 	// Setup timing
-	time_point t{};
+	time_point time_step{};
 	time_point current_time = std::chrono::steady_clock::now();
 	duration   accumulator{0s};
 
@@ -375,11 +381,10 @@ auto main(int argc, char* argv[]) -> int
 
 		while (accumulator >= dt)
 		{
-			t += dt;
+			time_step += dt;
 			accumulator -= dt;
 		}
 
-		glm::vec4 clear_colour{0.157, 0.157, 0.157, 1.0f};
 		glClearBufferfv(GL_COLOR, 0, glm::value_ptr(clear_colour));
 
 		glBindTextureUnit(0, sprite_sheet_texture_id);
@@ -398,29 +403,32 @@ namespace yaboc
 auto load_sprite_sheet(sprite_sheet_meta const& sprite_sheet_meta_data)
     -> stbi_uc*
 {
-	int   stb_x{}, stb_y{}, stb_num_channels{};
-	auto* sprite_sheet_pizel_data =
+	glm::ivec2 dimensions{};
+	int        stb_num_channels{};
+	auto*      sprite_sheet_pizel_data =
 	    stbi_load(sprite_sheet_meta_data.name.c_str(),
-	              &stb_x,
-	              &stb_y,
+	              &dimensions.x,
+	              &dimensions.y,
 	              &stb_num_channels,
 	              0);
 
-	assert(stb_x == sprite_sheet_meta_data.dimensions.x);
-	assert(stb_y == sprite_sheet_meta_data.dimensions.y);
+	assert(dimensions == sprite_sheet_meta_data.dimensions);
 	return sprite_sheet_pizel_data;
 }
 } // namespace yaboc
 
 namespace
 {
-void message_callback(GLenum        source,
-                      GLenum        type,
-                      GLuint        id,
-                      GLenum        severity,
-                      GLsizei       length,
-                      GLchar const* message,
-                      void const*   user_param)
+// This function's signature is specified by OpenGL and cannot be changed.
+// NOLINTBEGIN(bugprone-easily-swappable-parameters)
+void message_callback(
+    GLenum        source,
+    GLenum        type,
+    GLuint        id,
+    GLenum        severity,
+    GLsizei       length,
+    GLchar const* message,
+    void const*   user_param) // NOLINTEND(bugprone-easily-swappable-parameters)
 {
 	static_cast<void>(length);
 	static_cast<void>(user_param);
@@ -464,7 +472,12 @@ void message_callback(GLenum        source,
 		}
 		return "UNKNOWN";
 	};
-	std::cout << src_str() << ", " << type_str() << ", " << severity_str()
-	          << ", " << id << ": " << message << '\n';
+	auto formatted_message = std::format("{}, {}, {}, {}: {}\n",
+	                                     src_str(),
+	                                     type_str(),
+	                                     severity_str(),
+	                                     id,
+	                                     message);
+	std::cout << formatted_message;
 }
 } // namespace

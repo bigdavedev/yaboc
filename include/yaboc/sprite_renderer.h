@@ -62,7 +62,7 @@ class sprite_renderer final
 	int m_pixels_per_metre{};
 
 public:
-	struct config final
+	struct configuration final
 	{
 		glm::vec2 reference_resolution{640, 360};
 		int pixels_per_metre{static_cast<int>(reference_resolution.x / 10)};
@@ -77,7 +77,7 @@ public:
 
 	~sprite_renderer();
 
-	explicit sprite_renderer(config&& c);
+	explicit sprite_renderer(configuration&& config);
 
 	sprite_renderer(sprite_renderer const&) = delete;
 	sprite_renderer(sprite_renderer&&) = default;

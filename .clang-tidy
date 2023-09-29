@@ -27,6 +27,8 @@ CheckOptions:
   cppcoreguidelines-avoid-magic-numbers.IgnoredFloatingPointValues: '0.0;0.5;1.0'
   readability-magic-numbers.IgnoredIntegerValues: '0;1'
   readability-magic-numbers.IgnoredFloatingPointValues: '0.0;0.5;1.0'
+  readability-identifier-length.IgnoredVariableNames: 'x|y|id|dt'
+  readability-identifier-length.IgnoredParameterNames: 'x|y|id|dt'
   readability-identifier-naming.AbstractClassCase: lower_case
   readability-identifier-naming.ClassCase: lower_case
   readability-identifier-naming.ClassConstantCase: lower_case
