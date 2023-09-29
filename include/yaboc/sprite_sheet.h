@@ -69,7 +69,7 @@ public:
 
 	auto frame_data(std::size_t sprite_id) const -> sprite_frame_data
 	{
-		assert(sprite_id >= 0 && sprite_id < std::size(m_sprite_frame_data));
+		assert(sprite_id < std::size(m_sprite_frame_data));
 		return m_sprite_frame_data[sprite_id];
 	}
 };

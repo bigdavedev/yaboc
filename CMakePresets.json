@@ -83,6 +83,30 @@
 				"ninja",
 				"release"
 			]
+		},
+		{
+			"name": "linux-gcc-ninja-debug",
+			"displayName": "Linux GCC - Debug",
+			"binaryDir": "build/${presetName}",
+			"inherits": [
+				"base",
+				"linux",
+				"gcc",
+				"ninja",
+				"debug"
+			]
+		},
+		{
+			"name": "linux-gcc-ninja-release",
+			"displayName": "Linux GCC - Release",
+			"binaryDir": "build/${presetName}",
+			"inherits": [
+				"base",
+				"linux",
+				"gcc",
+				"ninja",
+				"release"
+			]
 		}
 	],
 	"buildPresets": [
@@ -120,6 +144,18 @@
 			"name": "linux-clang-ninja-release",
 			"displayName": "Linux Clang - Release",
 			"configurePreset": "linux-clang-ninja-release",
+			"targets": "yaboc"
+		},
+		{
+			"name": "linux-gcc-ninja-debug",
+			"displayName": "Linux GCC - Debug",
+			"configurePreset": "linux-gcc-ninja-debug",
+			"targets": "yaboc"
+		},
+		{
+			"name": "linux-gcc-ninja-release",
+			"displayName": "Linux GCC - Release",
+			"configurePreset": "linux-gcc-ninja-release",
 			"targets": "yaboc"
 		}
 	]
