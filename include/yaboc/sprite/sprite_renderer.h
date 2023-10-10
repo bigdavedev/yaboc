@@ -16,6 +16,8 @@
 #ifndef YABOC_INCLUDE_YABOC_SPRITE_SPRITE_RENDERER_H
 #define YABOC_INCLUDE_YABOC_SPRITE_SPRITE_RENDERER_H
 
+#include "yaboc/sprite/sprite_sheet.h"
+
 #include "glad/gl.h"
 #include "glm/glm.hpp"
 
@@ -86,6 +88,9 @@ public:
 	auto operator=(sprite_renderer&&) -> sprite_renderer& = default;
 
 	void begin_batch();
+
+	void use_sprite_sheet(sprite_sheet const& sheet);
+
 	void end_batch();
 
 	auto submit_sprite(glm::vec2         position,

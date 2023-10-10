@@ -31,6 +31,8 @@ sprite_render_system::sprite_render_system(
 
 void sprite_render_system::operator()(entt::registry& registry) const
 {
+	m_renderer->use_sprite_sheet(*m_sprite_sheet);
+
 	m_renderer->begin_batch();
 
 	auto scale_uv = [sheet_size = m_sprite_sheet->meta_data().dimensions](

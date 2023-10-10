@@ -57,6 +57,8 @@ class sprite_sheet final
 
 	sprite_sheet_meta m_meta_data{};
 
+	unsigned int m_renderer_id{};
+
 public:
 	explicit sprite_sheet(std::string&& specification_path);
 
@@ -71,6 +73,16 @@ public:
 	{
 		assert(sprite_id < std::size(m_sprite_frame_data));
 		return m_sprite_frame_data[sprite_id];
+	}
+
+	void renderer_id(unsigned int id)
+	{
+		m_renderer_id = id;
+	}
+
+	auto renderer_id() const -> unsigned int
+	{
+		return m_renderer_id;
 	}
 };
 } // namespace yaboc::sprite

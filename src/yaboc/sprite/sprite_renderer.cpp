@@ -135,6 +135,11 @@ void sprite_renderer::begin_batch()
 	glBindVertexArray(m_vao);
 }
 
+void sprite_renderer::use_sprite_sheet(sprite_sheet const& sheet) 
+{
+	glBindTextureUnit(0, sheet.renderer_id());
+}
+
 void sprite_renderer::end_batch()
 {
 	if (m_current_sprite_count > 0)

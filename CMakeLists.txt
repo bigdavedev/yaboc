@@ -33,6 +33,8 @@ target_sources (
 
 	PRIVATE
 	include/yaboc/graphics/shader.h
+	include/yaboc/platform/sdl_gl_window.h
+	include/yaboc/platform/sdl_context.h
 	include/yaboc/sprite/sprite_renderer.h
 	include/yaboc/sprite/sprite_sheet.h
 
@@ -41,6 +43,8 @@ target_sources (
 	include/yaboc/ecs/systems/sprite_render_system.h
 
 	src/yaboc/graphics/shader.cpp
+	src/yaboc/platform/sdl_gl_window.cpp
+	src/yaboc/platform/sdl_context.cpp
 	src/yaboc/sprite/sprite_renderer.cpp
 	src/yaboc/sprite/sprite_sheet.cpp
 	src/yaboc/ecs/systems/sprite_render_system.cpp
