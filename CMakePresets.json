@@ -158,5 +158,12 @@
 			"configurePreset": "linux-gcc-ninja-release",
 			"targets": "yaboc"
 		}
+	],
+	"packagePresets": [
+		{
+			"name": "pack",
+			"configurePreset": "linux-gcc-ninja-release",
+			"generators": ["TGZ"]
+		}
 	]
 }

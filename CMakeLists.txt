@@ -55,6 +55,7 @@ target_link_libraries (
 	yaboc
 
 	PRIVATE
+	Yaboc::CompilerOptions
 	SDL3::SDL3
 	OpenGL::GL
 	glm::glm
@@ -63,3 +64,9 @@ target_link_libraries (
 	STB::Image
 	nlohmann_json::nlohmann_json
 )
+
+install (TARGETS SDL3-shared)
+install (TARGETS yaboc)
+install (DIRECTORY ${PROJECT_SOURCE_DIR}/assets TYPE DATA)
+
+include (CPack)

@@ -2,6 +2,8 @@ include (FetchContent)
 
 find_package (OpenGL REQUIRED)
 
+set (BUILD_SHARED_LIBS OFF)
+
 FetchContent_Declare (
 	SDL
 	GIT_REPOSITORY https://github.com/libsdl-org/SDL

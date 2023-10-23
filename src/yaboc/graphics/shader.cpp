@@ -20,6 +20,7 @@
 #include <cassert>
 #include <fstream>
 #include <sstream>
+#include <utility>
 
 namespace yaboc
 {
@@ -46,7 +47,7 @@ namespace
 			return GL_COMPUTE_SHADER;
 		}
 
-		assert(false && "Invalid shader type provided");
+		std::unreachable();
 	}
 } // namespace
 
