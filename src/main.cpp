@@ -146,6 +146,30 @@ namespace ecs::components
 		float y{};
 	};
 } // namespace ecs::components
+
+namespace ecs::system
+{
+	class move_entity_system final
+	{
+		entt::registry* m_registry{};
+
+	public:
+		explicit move_entity_system(entt::registry& registry)
+		    : m_registry{&registry}
+		{}
+
+		void operator()(entt::entity                entity,
+		                components::velocity const  velocity,
+		                components::direction const direction)
+		{
+			auto& transform = m_registry->get<components::transform>(entity);
+			transform.position.x +=
+			    direction.horizontal * velocity.x * dt_f.count();
+			transform.position.y +=
+			    direction.vertical * velocity.y * dt_f.count();
+		}
+	};
+} // namespace ecs::system
 } // namespace yaboc
 
 auto main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) -> int
@@ -164,9 +188,6 @@ auto main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) -> int
 
 	auto sprite_sheet =
 	    yaboc::sprite::sprite_sheet{"assets/data/sprites/sprite_sheet.json"};
-
-	auto paddle_sprite_id = sprite_sheet.id_from_name("entity/paddleRed");
-	auto paddle_sprite_data = sprite_sheet.frame_data(paddle_sprite_id);
 
 	auto sprite_sheet_texture_id =
 	    yaboc::load_sprite_sheet(sprite_sheet.meta_data());
@@ -263,14 +284,7 @@ auto main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) -> int
 			registry
 			    .view<yaboc::ecs::components::velocity,
 			          yaboc::ecs::components::direction>()
-			    .each([&registry](entt::entity                            e,
-			                      yaboc::ecs::components::velocity const  v,
-			                      yaboc::ecs::components::direction const d) {
-				    auto& t =
-				        registry.get<yaboc::ecs::components::transform>(e);
-				    t.position.x += d.horizontal * v.x * dt_f.count();
-					t.position.y += d.vertical * v.y * dt_f.count();
-			    });
+			    .each(yaboc::ecs::system::move_entity_system{registry});
 		}
 
 		glClearBufferfv(GL_COLOR, 0, glm::value_ptr(clear_colour));
