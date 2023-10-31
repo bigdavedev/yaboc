@@ -65,7 +65,6 @@ target_link_libraries (
 	nlohmann_json::nlohmann_json
 )
 
-install (TARGETS SDL3-shared)
 install (TARGETS yaboc)
 install (DIRECTORY ${PROJECT_SOURCE_DIR}/assets TYPE DATA)
 

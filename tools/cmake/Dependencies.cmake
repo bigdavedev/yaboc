@@ -2,12 +2,12 @@ include (FetchContent)
 
 find_package (OpenGL REQUIRED)
 
-set (BUILD_SHARED_LIBS OFF)
+set (SDL_DISABLE_INSTALL OFF)
 
 FetchContent_Declare (
 	SDL
 	GIT_REPOSITORY https://github.com/libsdl-org/SDL
-	GIT_TAG fd7cd91dc9c6c5c3882b69793642b7915184535b
+	GIT_TAG 5d95cbde37c749183ae5de97008bee99cb7f40a5
 	SYSTEM
 )
 

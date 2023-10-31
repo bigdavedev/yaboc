@@ -36,6 +36,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <numeric>
 #include <string>
 
 namespace
@@ -50,6 +51,8 @@ constexpr glm::vec4 clear_colour{0.157F, 0.157F, 0.157F, 1.0F};
 using namespace std::chrono_literals;
 
 constexpr auto dt = std::chrono::duration<std::int64_t, std::ratio<1, 60>>{1};
+constexpr auto dt_f =
+    std::chrono::duration_cast<std::chrono::duration<float>>(dt);
 using duration = decltype(std::chrono::steady_clock::duration{} + dt);
 using time_point = std::chrono::time_point<std::chrono::steady_clock, duration>;
 } // namespace
@@ -65,14 +68,10 @@ namespace yaboc
 auto load_level(entt::registry&    registry,
                 std::string const& level_file,
                 std::size_t        sprite_id) -> void;
-auto create_paddle(entt::registry& registry,
-                   std::size_t     sprite_id,
-                   glm::vec2       position,
-                   glm::vec2       size) -> entt::entity;
-auto create_ball(entt::registry& registry,
-                 std::size_t     sprite_id,
-                 glm::vec2       size,
-                 entt::entity    parent) -> entt::entity;
+auto create_sprite_entity(entt::registry& registry,
+                          std::size_t     sprite_id,
+                          glm::vec2       position,
+                          glm::vec2       size) -> entt::entity;
 
 void load_level(entt::registry&    registry,
                 std::string const& level_file,
@@ -133,46 +132,20 @@ void load_level(entt::registry&    registry,
 	    0.25F + brick_size.y / 2.0F});
 }
 
-auto create_paddle(entt::registry& registry,
-                   std::size_t     sprite_id,
-                   glm::vec2       position,
-                   glm::vec2       size) -> entt::entity
+namespace ecs::components
 {
-	auto paddle = registry.create();
-	registry.emplace<yaboc::ecs::components::transform>(paddle, position);
-	registry.emplace<yaboc::ecs::components::sprite>(paddle,
-	                                                 sprite_id,
-	                                                 size,
-	                                                 glm::vec4{1.0F});
-	registry.emplace<yaboc::ecs::tags::player>(paddle);
-	return paddle;
-}
+	struct direction final
+	{
+		float horizontal{};
+		float vertical{};
+	};
 
-auto create_ball(entt::registry& registry,
-                 std::size_t     sprite_id,
-                 glm::vec2       size,
-                 entt::entity    parent) -> entt::entity
-{
-	auto ball = registry.create();
-
-	auto [parent_transform, parent_sprite] =
-	    registry.get<ecs::components::transform, ecs::components::sprite>(
-	        parent);
-
-	auto position =
-	    glm::vec2{parent_transform.position.x,
-	              parent_transform.position.y - parent_sprite.size.y};
-
-	registry.emplace<ecs::components::transform>(ball, position);
-	registry.emplace<ecs::components::sprite>(ball,
-	                                          sprite_id,
-	                                          size,
-	                                          glm::vec4{1.0F});
-	registry.emplace<ecs::tags::ball>(ball);
-	registry.emplace<ecs::components::relationship>(ball, parent);
-
-	return ball;
-}
+	struct velocity final
+	{
+		float x{};
+		float y{};
+	};
+} // namespace ecs::components
 } // namespace yaboc
 
 auto main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) -> int
@@ -195,23 +168,36 @@ auto main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) -> int
 	auto paddle_sprite_id = sprite_sheet.id_from_name("entity/paddleRed");
 	auto paddle_sprite_data = sprite_sheet.frame_data(paddle_sprite_id);
 
-	auto const& sprite_sheet_meta_data = sprite_sheet.meta_data();
-	auto        sprite_sheet_texture_id =
-	    yaboc::load_sprite_sheet(sprite_sheet_meta_data);
+	auto sprite_sheet_texture_id =
+	    yaboc::load_sprite_sheet(sprite_sheet.meta_data());
 
 	sprite_sheet.renderer_id(sprite_sheet_texture_id);
 
 	entt::registry registry{};
 
-	auto paddle =
-	    yaboc::create_paddle(registry,
-	                         sprite_sheet.id_from_name("entity/paddleRed"),
-	                         glm::vec2{5.0F, 5.25F},
-	                         glm::vec2{1.0F, 0.25F});
-	yaboc::create_ball(registry,
-	                   sprite_sheet.id_from_name("entity/ballGrey"),
-	                   glm::vec2{0.25F, 0.25F},
-	                   paddle);
+	auto paddle = registry.create();
+	registry.emplace<yaboc::ecs::components::transform>(paddle,
+	                                                    glm::vec2{5.0F, 5.25F});
+	registry.emplace<yaboc::ecs::components::sprite>(
+	    paddle,
+	    sprite_sheet.id_from_name("entity/paddleRed"),
+	    glm::vec2{1.0F, 0.25F},
+	    glm::vec4{1.0F});
+	registry.emplace<yaboc::ecs::components::velocity>(paddle, 10.0F, 0.0F);
+	registry.emplace<yaboc::ecs::components::direction>(paddle);
+	registry.emplace<yaboc::ecs::tags::player>(paddle);
+
+	auto ball = registry.create();
+	registry.emplace<yaboc::ecs::components::transform>(ball,
+	                                                    glm::vec2{5.0F, 5.0F});
+	registry.emplace<yaboc::ecs::components::sprite>(
+	    ball,
+	    sprite_sheet.id_from_name("entity/ballGrey"),
+	    glm::vec2{0.25F, 0.25F},
+	    glm::vec4{1.0F});
+	registry.emplace<yaboc::ecs::components::velocity>(ball, 0.2F, 0.0F);
+	registry.emplace<yaboc::ecs::components::direction>(ball, -1.0f, 0.0F);
+	registry.emplace<yaboc::ecs::tags::ball>(ball);
 
 	yaboc::load_level(
 	    registry,
@@ -225,6 +211,12 @@ auto main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) -> int
 	    yaboc::ecs::system::sprite_render_system{std::move(renderer),
 	                                             &sprite_sheet};
 
+	std::span sdl_key_states = [] {
+		int         num_keys{};
+		auto const* key_states = SDL_GetKeyboardState(&num_keys);
+		return std::span{key_states, static_cast<std::size_t>(num_keys)};
+	}();
+
 	// Setup timing
 	time_point time_step{};
 	time_point current_time = std::chrono::steady_clock::now();
@@ -233,7 +225,8 @@ auto main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) -> int
 	while (running)
 	{
 		time_point new_time = std::chrono::steady_clock::now();
-		auto const frame_time = new_time - current_time;
+		auto const frame_time =
+		    std::min(new_time - current_time, duration{250ms});
 		current_time = new_time;
 
 		SDL_Event sdl_event{};
@@ -253,12 +246,31 @@ auto main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) -> int
 			}
 		}
 
+		registry.get<yaboc::ecs::components::direction>(paddle).horizontal =
+		    [sdl_key_states] {
+			    if (sdl_key_states[SDL_SCANCODE_LEFT] != 0U) return -1.0F;
+			    if (sdl_key_states[SDL_SCANCODE_RIGHT] != 0U) return 1.0F;
+			    return 0.0F;
+		    }();
+
 		accumulator += frame_time;
 
 		while (accumulator >= dt)
 		{
 			time_step += dt;
 			accumulator -= dt;
+
+			registry
+			    .view<yaboc::ecs::components::velocity,
+			          yaboc::ecs::components::direction>()
+			    .each([&registry](entt::entity                            e,
+			                      yaboc::ecs::components::velocity const  v,
+			                      yaboc::ecs::components::direction const d) {
+				    auto& t =
+				        registry.get<yaboc::ecs::components::transform>(e);
+				    t.position.x += d.horizontal * v.x * dt_f.count();
+					t.position.y += d.vertical * v.y * dt_f.count();
+			    });
 		}
 
 		glClearBufferfv(GL_COLOR, 0, glm::value_ptr(clear_colour));
