@@ -26,29 +26,26 @@ namespace yaboc
 {
 namespace
 {
-	auto gl_check_shader_compile_status(unsigned int shader_id) -> bool;
+auto gl_check_shader_compile_status(unsigned int shader_id) -> bool;
 
-	auto gl_check_program_link_status(unsigned int program_id) -> bool;
+auto gl_check_program_link_status(unsigned int program_id) -> bool;
 
-	constexpr auto to_gl_shader_type(shader_builder_input::shader_type input)
+constexpr auto to_gl_shader_type(shader_builder_input::shader_type input)
+{
+	switch (input)
 	{
-		switch (input)
-		{
-		case shader_builder_input::shader_type::vertex: return GL_VERTEX_SHADER;
-		case shader_builder_input::shader_type::tess_control:
-			return GL_TESS_CONTROL_SHADER;
-		case shader_builder_input::shader_type::tess_eval:
-			return GL_TESS_EVALUATION_SHADER;
-		case shader_builder_input::shader_type::geometry:
-			return GL_GEOMETRY_SHADER;
-		case shader_builder_input::shader_type::fragment:
-			return GL_FRAGMENT_SHADER;
-		case shader_builder_input::shader_type::compute:
-			return GL_COMPUTE_SHADER;
-		}
-
-		std::unreachable();
+	case shader_builder_input::shader_type::vertex: return GL_VERTEX_SHADER;
+	case shader_builder_input::shader_type::tess_control:
+		return GL_TESS_CONTROL_SHADER;
+	case shader_builder_input::shader_type::tess_eval:
+		return GL_TESS_EVALUATION_SHADER;
+	case shader_builder_input::shader_type::geometry: return GL_GEOMETRY_SHADER;
+	case shader_builder_input::shader_type::fragment: return GL_FRAGMENT_SHADER;
+	case shader_builder_input::shader_type::compute: return GL_COMPUTE_SHADER;
 	}
+
+	std::unreachable();
+}
 } // namespace
 
 auto make_shader(std::vector<shader_builder_input> const& inputs)
@@ -90,47 +87,44 @@ auto make_shader(std::vector<shader_builder_input> const& inputs)
 
 namespace
 {
-	auto gl_check_shader_compile_status(unsigned int shader_id) -> bool
+auto gl_check_shader_compile_status(unsigned int shader_id) -> bool
+{
+	int success{};
+	glGetShaderiv(shader_id, GL_COMPILE_STATUS, &success);
+	if (success == 0)
 	{
-		int success{};
-		glGetShaderiv(shader_id, GL_COMPILE_STATUS, &success);
-		if (success == 0)
-		{
-			int log_length{};
-			glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &log_length);
-			std::string message{};
-			message.resize(static_cast<std::size_t>(log_length));
-			glGetShaderInfoLog(shader_id, log_length, nullptr, message.data());
-			//			spdlog::default_logger()->error(
-			//			    "Failed to compiler shader (id: {}): {}",
-			//			    shader_id,
-			//			    message);
-			return false;
-		}
-		return true;
+		int log_length{};
+		glGetShaderiv(shader_id, GL_INFO_LOG_LENGTH, &log_length);
+		std::string message{};
+		message.resize(static_cast<std::size_t>(log_length));
+		glGetShaderInfoLog(shader_id, log_length, nullptr, message.data());
+		//			spdlog::default_logger()->error(
+		//			    "Failed to compiler shader (id: {}): {}",
+		//			    shader_id,
+		//			    message);
+		return false;
 	}
+	return true;
+}
 
-	auto gl_check_program_link_status(unsigned int program_id) -> bool
+auto gl_check_program_link_status(unsigned int program_id) -> bool
+{
+	int success{};
+	glGetProgramiv(program_id, GL_LINK_STATUS, &success);
+	if (success == 0)
 	{
-		int success{};
-		glGetProgramiv(program_id, GL_LINK_STATUS, &success);
-		if (success == 0)
-		{
-			int log_length{};
-			glGetProgramiv(program_id, GL_INFO_LOG_LENGTH, &log_length);
-			std::string message{};
-			message.resize(static_cast<std::size_t>(log_length));
-			glGetProgramInfoLog(program_id,
-			                    log_length,
-			                    nullptr,
-			                    message.data());
-			//			spdlog::default_logger()->error(
-			//			    "Failed to compiler shader (id: {}): {}",
-			//			    program_id,
-			//			    message);
-			return false;
-		}
-		return true;
+		int log_length{};
+		glGetProgramiv(program_id, GL_INFO_LOG_LENGTH, &log_length);
+		std::string message{};
+		message.resize(static_cast<std::size_t>(log_length));
+		glGetProgramInfoLog(program_id, log_length, nullptr, message.data());
+		//			spdlog::default_logger()->error(
+		//			    "Failed to compiler shader (id: {}): {}",
+		//			    program_id,
+		//			    message);
+		return false;
 	}
+	return true;
+}
 } // namespace
 } // namespace yaboc

@@ -20,23 +20,22 @@
 
 namespace yaboc::platform
 {
-	sdl_context::sdl_context(int gl_major, int gl_minor)
-	{
-		// NOLINTNEXTLINE(*-signed-bitwise)
-		SDL_Init(SDL_INIT_EVERYTHING);
+sdl_context::sdl_context(int gl_major, int gl_minor)
+{
+	// NOLINTNEXTLINE(*-signed-bitwise)
+	SDL_Init(SDL_INIT_EVERYTHING);
 
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
-		                    SDL_GL_CONTEXT_PROFILE_CORE);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS,
-		                    SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, gl_major);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, gl_minor);
-		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, SDL_TRUE);
-	}
-
-	sdl_context::~sdl_context()
-	{
-		SDL_Quit();
-	}
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
+	                    SDL_GL_CONTEXT_PROFILE_CORE);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS,
+	                    SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, gl_major);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, gl_minor);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, SDL_TRUE);
 }
 
+sdl_context::~sdl_context()
+{
+	SDL_Quit();
+}
+} // namespace yaboc::platform

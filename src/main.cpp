@@ -134,41 +134,40 @@ void load_level(entt::registry&    registry,
 
 namespace ecs::components
 {
-	struct direction final
-	{
-		float horizontal{};
-		float vertical{};
-	};
+struct direction final
+{
+	float horizontal{};
+	float vertical{};
+};
 
-	struct velocity final
-	{
-		float x{};
-		float y{};
-	};
+struct velocity final
+{
+	float x{};
+	float y{};
+};
 } // namespace ecs::components
 
 namespace ecs::system
 {
-	class move_entity_system final
+class move_entity_system final
+{
+	entt::registry* m_registry{};
+
+public:
+	explicit move_entity_system(entt::registry& registry)
+	    : m_registry{&registry}
+	{}
+
+	void operator()(entt::entity                entity,
+	                components::velocity const  velocity,
+	                components::direction const direction)
 	{
-		entt::registry* m_registry{};
-
-	public:
-		explicit move_entity_system(entt::registry& registry)
-		    : m_registry{&registry}
-		{}
-
-		void operator()(entt::entity                entity,
-		                components::velocity const  velocity,
-		                components::direction const direction)
-		{
-			auto& transform = m_registry->get<components::transform>(entity);
-			transform.position.x +=
-			    direction.horizontal * velocity.x * dt_f.count();
-			transform.position.y +=
-			    direction.vertical * velocity.y * dt_f.count();
-		}
-	};
+		auto& transform = m_registry->get<components::transform>(entity);
+		transform.position.x +=
+		    direction.horizontal * velocity.x * dt_f.count();
+		transform.position.y += direction.vertical * velocity.y * dt_f.count();
+	}
+};
 } // namespace ecs::system
 } // namespace yaboc
 

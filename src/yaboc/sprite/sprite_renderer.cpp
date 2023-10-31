@@ -29,26 +29,26 @@ namespace yaboc::sprite
 {
 namespace
 {
-	constexpr auto mapping_flags =
-	    GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
-	constexpr auto storage_flags = mapping_flags | GL_DYNAMIC_STORAGE_BIT;
+constexpr auto mapping_flags =
+    GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
+constexpr auto storage_flags = mapping_flags | GL_DYNAMIC_STORAGE_BIT;
 
-	auto create_empty_buffer(std::size_t size)
-	{
-		unsigned int id{};
-		glCreateBuffers(1, &id);
-		glNamedBufferStorage(id, size, nullptr, storage_flags);
-		return id;
-	}
+auto create_empty_buffer(std::size_t size)
+{
+	unsigned int id{};
+	glCreateBuffers(1, &id);
+	glNamedBufferStorage(id, size, nullptr, storage_flags);
+	return id;
+}
 
-	template <class T>
-	auto map_as(unsigned int id, std::size_t size)
-	{
-		void* buf = glMapNamedBufferRange(id, 0, size, mapping_flags);
-		return std::span<T>(static_cast<T*>(buf), size / sizeof(T));
-	}
+template <class T>
+auto map_as(unsigned int id, std::size_t size)
+{
+	void* buf = glMapNamedBufferRange(id, 0, size, mapping_flags);
+	return std::span<T>(static_cast<T*>(buf), size / sizeof(T));
+}
 
-	constexpr auto verts_per_quad = 6;
+constexpr auto verts_per_quad = 6;
 } // namespace
 
 sprite_renderer::~sprite_renderer()
@@ -135,7 +135,7 @@ void sprite_renderer::begin_batch()
 	glBindVertexArray(m_vao);
 }
 
-void sprite_renderer::use_sprite_sheet(sprite_sheet const& sheet) 
+void sprite_renderer::use_sprite_sheet(sprite_sheet const& sheet)
 {
 	glBindTextureUnit(0, sheet.renderer_id());
 }
