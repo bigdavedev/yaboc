@@ -21,7 +21,9 @@
 #include "glm/gtc/type_ptr.hpp"
 
 #include <chrono>
+#include <limits>
 #include <span>
+#include <cassert>
 
 static_assert(sizeof(glm::vec2) == (sizeof(float) * 2));
 
@@ -35,16 +37,24 @@ constexpr auto storage_flags = mapping_flags | GL_DYNAMIC_STORAGE_BIT;
 
 auto create_empty_buffer(std::size_t size)
 {
+	assert(size < std::numeric_limits<GLsizeiptr>::max());
 	unsigned int id{};
 	glCreateBuffers(1, &id);
-	glNamedBufferStorage(id, size, nullptr, storage_flags);
+	glNamedBufferStorage(id,
+	                     static_cast<GLsizeiptr>(size),
+	                     nullptr,
+	                     storage_flags);
 	return id;
 }
 
 template <class T>
 auto map_as(unsigned int id, std::size_t size)
 {
-	void* buf = glMapNamedBufferRange(id, 0, size, mapping_flags);
+	assert(size < std::numeric_limits<GLsizeiptr>::max());
+	void* buf = glMapNamedBufferRange(id,
+	                                  0,
+	                                  static_cast<GLsizeiptr>(size),
+	                                  mapping_flags);
 	return std::span<T>(static_cast<T*>(buf), size / sizeof(T));
 }
 

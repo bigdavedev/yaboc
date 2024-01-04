@@ -80,10 +80,8 @@ void load_level(entt::registry&    registry,
 	std::ifstream level_stream{level_file};
 	std::string   line{};
 
-	float     gap = 0.03125F;
-	glm::vec2 brick_size{0.75F, 0.25F};
-
-	glm::vec2 start_point{};
+	float const     gap{0.03125F};
+	glm::vec2 const brick_size{0.75F, 0.25F};
 
 	int bricks_per_row{};
 	int y{};
@@ -97,16 +95,16 @@ void load_level(entt::registry&    registry,
 		{
 			if (brick_type != 0)
 			{
-				entt::entity brick = registry.create();
+				entt::entity const brick = registry.create();
 
 				using transform_component = ecs::components::transform;
 				using sprite_component = ecs::components::sprite;
 
 				registry.emplace<transform_component>(
 				    brick,
-				    glm::vec2{start_point.x + (static_cast<float>(x) * gap) +
+				    glm::vec2{(static_cast<float>(x) * gap) +
 				                  (static_cast<float>(x) * brick_size.x),
-				              start_point.y + static_cast<float>(y) * gap +
+				              static_cast<float>(y) * gap +
 				                  (static_cast<float>(y) * brick_size.y)});
 				registry.emplace<sprite_component>(brick,
 				                                   sprite_id,
@@ -124,12 +122,15 @@ void load_level(entt::registry&    registry,
 	}
 
 	// Ensure the bricks are centered along the X-axis.
+	// TODO(Dave): A better level/scene file will be able to parent things
+	// properly. NOLINTBEGIN(*-magic-numbers)
 	auto brick_row_midpoint = static_cast<float>(bricks_per_row) / 2.0F;
 	registry.ctx().emplace<ecs::components::brick_group>(glm::vec2{
 	    (gap / 2.0F + 5.0F -
 	     (brick_row_midpoint * (brick_size.x) + brick_row_midpoint * gap)) +
 	        brick_size.x / 2.0F,
 	    0.25F + brick_size.y / 2.0F});
+	// NOLINTEND(*-magic-numbers)
 }
 
 namespace ecs::components
@@ -173,8 +174,8 @@ public:
 
 auto main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) -> int
 {
-	yaboc::platform::sdl_context sdl{opengl_major_version,
-	                                 opengl_minor_version};
+	yaboc::platform::sdl_context const sdl{opengl_major_version,
+	                                       opengl_minor_version};
 
 	yaboc::platform::sdl_gl_window window{window_default_width,
 	                                      window_default_height,
@@ -195,6 +196,8 @@ auto main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) -> int
 
 	entt::registry registry{};
 
+	// TODO(Dave): A better level/scene file will be able to specify properties
+	// properly. NOLINTBEGIN(*-magic-numbers)
 	auto paddle = registry.create();
 	registry.emplace<yaboc::ecs::components::transform>(paddle,
 	                                                    glm::vec2{5.0F, 5.25F});
@@ -216,8 +219,9 @@ auto main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) -> int
 	    glm::vec2{0.25F, 0.25F},
 	    glm::vec4{1.0F});
 	registry.emplace<yaboc::ecs::components::velocity>(ball, 0.2F, 0.0F);
-	registry.emplace<yaboc::ecs::components::direction>(ball, -1.0f, 0.0F);
+	registry.emplace<yaboc::ecs::components::direction>(ball, -1.0F, 0.0F);
 	registry.emplace<yaboc::ecs::tags::ball>(ball);
+	// NOLINTEND(*-magic-numbers)
 
 	yaboc::load_level(
 	    registry,
@@ -231,7 +235,7 @@ auto main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) -> int
 	    yaboc::ecs::system::sprite_render_system{std::move(renderer),
 	                                             &sprite_sheet};
 
-	std::span sdl_key_states = [] {
+	std::span const sdl_key_states = [] {
 		int         num_keys{};
 		auto const* key_states = SDL_GetKeyboardState(&num_keys);
 		return std::span{key_states, static_cast<std::size_t>(num_keys)};
@@ -244,8 +248,8 @@ auto main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) -> int
 
 	while (running)
 	{
-		time_point new_time = std::chrono::steady_clock::now();
-		auto const frame_time =
+		time_point const new_time = std::chrono::steady_clock::now();
+		auto const       frame_time =
 		    std::min(new_time - current_time, duration{250ms});
 		current_time = new_time;
 
@@ -268,8 +272,14 @@ auto main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) -> int
 
 		registry.get<yaboc::ecs::components::direction>(paddle).horizontal =
 		    [sdl_key_states] {
-			    if (sdl_key_states[SDL_SCANCODE_LEFT] != 0U) return -1.0F;
-			    if (sdl_key_states[SDL_SCANCODE_RIGHT] != 0U) return 1.0F;
+			    if (sdl_key_states[SDL_SCANCODE_LEFT] != 0U)
+			    {
+				    return -1.0F;
+			    }
+			    if (sdl_key_states[SDL_SCANCODE_RIGHT] != 0U)
+			    {
+				    return 1.0F;
+			    }
 			    return 0.0F;
 		    }();
 
@@ -284,6 +294,31 @@ auto main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[]) -> int
 			    .view<yaboc::ecs::components::velocity,
 			          yaboc::ecs::components::direction>()
 			    .each(yaboc::ecs::system::move_entity_system{registry});
+
+			auto hit_wall = [](glm::vec2& position, glm::vec2 half_size) {
+				if (position.x - half_size.x < 0.0F)
+				{
+					position.x = half_size.x;
+				}
+
+				constexpr float playfield_length{10.0F};
+				if (position.x + half_size.x > playfield_length)
+				{
+					position.x = playfield_length - half_size.x;
+				}
+			};
+
+			registry.view<yaboc::ecs::tags::player>().each(
+			    [&registry, hit_wall](entt::entity entity) {
+				    auto& transform =
+				        registry.get<yaboc::ecs::components::transform>(entity);
+				    auto half_size =
+				        registry.get<yaboc::ecs::components::sprite>(entity)
+				            .size /
+				        2.0F;
+
+				    hit_wall(transform.position, half_size);
+			    });
 		}
 
 		glClearBufferfv(GL_COLOR, 0, glm::value_ptr(clear_colour));

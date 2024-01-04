@@ -22,6 +22,7 @@
 #include "glm/glm.hpp"
 
 #include <cstddef>
+#include <cstdint>
 
 namespace yaboc::ecs::components
 {
@@ -42,7 +43,7 @@ struct sprite final
 	glm::vec4   tint;
 };
 
-enum class brick_type
+enum class brick_type : std::uint8_t
 {
 	unbreakable,
 	normal

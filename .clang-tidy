@@ -20,13 +20,13 @@ Checks: >
   -openmp-*,
   -zircon-*,
 WarningsAsErrors: '*'
-HeaderFilterRegex: '.*'
+HeaderFilterRegex: 'include/.*'
 FormatStyle:     file
 CheckOptions:
-  cppcoreguidelines-avoid-magic-numbers.IgnoredIntegerValues: '0;1'
-  cppcoreguidelines-avoid-magic-numbers.IgnoredFloatingPointValues: '0.0;0.5;1.0'
-  readability-magic-numbers.IgnoredIntegerValues: '0;1'
-  readability-magic-numbers.IgnoredFloatingPointValues: '0.0;0.5;1.0'
+  cppcoreguidelines-avoid-magic-numbers.IgnoredIntegerValues: '0;1;2'
+  cppcoreguidelines-avoid-magic-numbers.IgnoredFloatingPointValues: '0.0;0.5;1.0;2.0'
+  readability-magic-numbers.IgnoredIntegerValues: '0;1;2'
+  readability-magic-numbers.IgnoredFloatingPointValues: '0.0;0.5;1.0;2.0'
   readability-identifier-length.IgnoredVariableNames: 'x|y|id|dt'
   readability-identifier-length.IgnoredParameterNames: 'x|y|id|dt'
   readability-identifier-naming.AbstractClassCase: lower_case

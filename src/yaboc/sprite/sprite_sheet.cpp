@@ -23,11 +23,12 @@
 
 namespace yaboc::sprite
 {
-
+// clang-format off
 NLOHMANN_JSON_SERIALIZE_ENUM(image_format,
-                             {
-                                 {image_format::rgba_8888, "RGBA8888"}
+{
+	{image_format::rgba_8888, "RGBA8888"}
 })
+// clang-format on
 
 void from_json(nlohmann::json const& json, sprite_sheet_meta& meta);
 void from_json(nlohmann::json const& json, sprite_frame_data& sprite);
@@ -54,6 +55,8 @@ struct adl_serializer<glm::vec<Dimensions, T>>
 			                                  : json_object.at("y").get<T>();
 		}
 
+		// 3 is a well-understood number in the context of vector dimensions
+		// NOLINTNEXTLINE(*-magic-numbers)
 		if constexpr (Dimensions >= 3)
 		{
 			json_object.at("z").get_to<T>(vec.z);
@@ -71,8 +74,7 @@ sprite_sheet::sprite_sheet(std::string&& specification_path)
 
 	sprite_sheet_info["meta"].get_to<sprite_sheet_meta>(m_meta_data);
 
-	std::size_t current_id{};
-	for (auto&& frame: sprite_sheet_info["frames"])
+	for (std::size_t current_id{}; auto&& frame: sprite_sheet_info["frames"])
 	{
 		auto data = frame.get<sprite_frame_data>();
 		m_id_lookup.emplace(std::piecewise_construct,
